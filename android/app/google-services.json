@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "66148375593",
+    "project_id": "wasiapp-66023",
+    "storage_bucket": "wasiapp-66023.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:66148375593:android:8fa0c5daed85bd06811038",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZLhoqC4yiDs5BNzi5rsTk5qck65Q3T7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
