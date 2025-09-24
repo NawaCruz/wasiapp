@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'home.dart';
 
 class FirestoreLoginScreen extends StatefulWidget {
   const FirestoreLoginScreen({super.key});
@@ -46,7 +47,7 @@ class _FirestoreLoginScreenState extends State<FirestoreLoginScreen> {
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainHomeScreen()),
         );
       }
     } catch (e) {
