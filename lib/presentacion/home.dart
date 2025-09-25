@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'registro_flow.dart'; // Nuevo flujo de registro completo
+import '../registro_flow.dart'; // Nuevo flujo de registro completo
 
 class MainHomeScreen extends StatefulWidget {
   const MainHomeScreen({super.key});
