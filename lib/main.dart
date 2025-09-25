@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'firestore_login.dart'; // importa tu login nuevo
+import 'Infraestructura/firebase_options.dart';
+import 'Infraestructura/firestore_login.dart'; // importa tu login nuevo
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

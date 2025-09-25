@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home.dart';
+import '../Presentacion/home.dart';
 
 class FirestoreLoginScreen extends StatefulWidget {
   const FirestoreLoginScreen({super.key});
