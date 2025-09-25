@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'registro_nino.dart'; // Archivo renombrado según convenciones
+import 'registro_flow.dart'; // Nuevo flujo de registro completo
 
 class MainHomeScreen extends StatefulWidget {
   const MainHomeScreen({super.key});
@@ -13,11 +13,24 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
   final List<Widget> _pages = [
     const InicioScreen(),
-    const RegistrarNinoScreen(), // Desde resgistronifio.dart
+    const RegistrarScreen(), // Pantalla que abrirá el flujo de registro
     const EscanearScreen(),
     const HistorialScreen(),
     const PerfilScreen(),
   ];
+
+  void _onTabTapped(int index) {
+    if (index == 1) {
+      // Si presiona "Registrar", abrir como nueva pantalla
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const RegistroNinoFlow(),
+        ),
+      );
+    } else {
+      setState(() => _currentIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +38,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: _onTabTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
@@ -43,6 +56,11 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 class InicioScreen extends StatelessWidget {
   const InicioScreen({super.key});
   @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('Inicio')), body: const Center(child: Text('Inicio')));
+}
+
+class RegistrarScreen extends StatelessWidget {
+  const RegistrarScreen({super.key});
+  @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('Registrar')), body: const Center(child: Text('Presiona el botón Registrar para comenzar')));
 }
 
 class EscanearScreen extends StatelessWidget {
