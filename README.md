@@ -1,23 +1,16 @@
 ## 📂 Estructura del proyecto
 
-La aplicación sigue una arquitectura en capas (inspirada en Clean Architecture), organizada de la siguiente manera:
-Cada capa tiene una responsabilidad clara:  
-lib/
-├── presentation/ # Pantallas, UI
-│ ├── home.dart
-│ ├── registro_nino.dart
-│ ├── login.dart
-│
-├── application/ # Lógica de negocio / controladores
-│ ├── registro_controller.dart
-│ ├── auth_controller.dart
-│
-├── domain/ # Entidades / modelos
-│ ├── niño.dart
-│ ├── usuario.dart
-│
-├── infrastructure/ # Conexión Firebase, servicios
-│ ├── firebase_options.dart
-│ ├── firestore_login.dart
-│
-└── main.dart # Punto de entrada
+
+---
+
+## 🧱 Descripción de cada capa
+
+- **📊 presentation/** → Maneja las pantallas y la experiencia del usuario (UI).  
+- **⚙️ application/** → Contiene la lógica de negocio y controladores de procesos.  
+- **🧩 domain/** → Define las entidades y modelos principales de la aplicación.  
+- **🔌 infrastructure/** → Implementa la conexión con servicios externos (Firebase).  
+- **🚀 main.dart** → Punto de inicio donde se configuran las dependencias y la app.  
+
+---
+
+✨ Con esta arquitectura, el sistema asegura una mejor **mantenibilidad**, **claridad** en el código y facilidad para futuras mejoras.  
