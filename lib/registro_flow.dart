@@ -31,6 +31,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String? _alimentosHierro;
   String? _fatiga;
   String? _alimentacionBalanceada;
+  String? _residenciaSeleccionada;
   
   // Controladores para medidas antropométricas
   final _formKey3 = GlobalKey<FormState>();
@@ -43,6 +44,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   
   final List<String> _opcionesSexo = ['Seleccionar', 'Masculino', 'Femenino'];
   final List<String> _opcionesSiNo = ['Seleccionar', 'Sí', 'No'];
+  final List<String> _opcionesResidencia = ['Huancayo', 'El Tambo', 'Chilca', 'Pilcomayo', 'Sicaya', 'Otra'];
+
 
   @override
   Widget build(BuildContext context) {
@@ -359,18 +362,24 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    _buildInputField(
-                      controller: _residenciaController,
-                      label: 'Lugar de Residencia',
-                      hint: 'Ingrese el lugar de residencia',
-                      icon: Icons.location_on,
+                    _buildDropdownField(
+                      value: _residenciaSeleccionada,
+                      label: 'Distrito de Residencia',
+                      hint: 'Seleccione el distrito de residencia',
+                      icon: Icons.map,
+                      items: _opcionesResidencia,
+                      onChanged: (value) {
+                        setState(() {
+                          _residenciaSeleccionada = value;
+                        });
+                      },
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El lugar de residencia es obligatorio';
+                        if (value == null || value == 'Seleccionar') {
+                          return 'Debe seleccionar el distrito de residencia';
                         }
                         return null;
                       },
-                    ),
+                    )
                   ],
                 ),
               ),
