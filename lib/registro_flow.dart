@@ -24,7 +24,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   
   DateTime? _fechaNacimiento;
   String? _sexoSeleccionado;
-  
+  String? _residenciaSeleccionada; // ✅ Cambiado a dropdown
   // Controladores para cuestionario de salud
   final _formKey2 = GlobalKey<FormState>();
   String? _anemia;
@@ -47,7 +47,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   
   final List<String> _opcionesSexo = ['Seleccionar', 'Masculino', 'Femenino'];
   final List<String> _opcionesSiNo = ['Seleccionar', 'Sí', 'No'];
-
+  final List<String> _opcionesResidencia = ['Huancayo', 'El Tambo', 'Chilca', 'Pilcomayo', 'Sicaya', 'Otra']; // ✅ Agregado
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1425,6 +1425,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
         'fechaNacimiento': _fechaNacimiento,
         'sexo': _sexoSeleccionado,
         'residencia': _residenciaController.text.trim(),
+        'residencia': _residenciaSeleccionada, // ✅ Ahora usa el dropdown
         'nombreTutor': _nombreTutorController.text.trim(),
         'dniPadre': _dniPadreController.text.trim(),
         'anemia': _anemia,
