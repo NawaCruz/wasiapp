@@ -31,6 +31,9 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String? _alimentosHierro;
   String? _fatiga;
   String? _alimentacionBalanceada;
+  String? _palidez;
+  String? _disminucionRendimiento;
+  String? _riesgoAnemia;
   String? _residenciaSeleccionada;
   
   // Controladores para medidas antropométricas
@@ -630,6 +633,30 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                       'Por favor, indique si lleva alimentación balanceada',
                     ),
+                    const SizedBox(height: 20),
+                    _buildHealthQuestion(
+                      '¿El niño/a presenta palidez en piel o mucosas?',
+                      Icons.face,
+                      _palidez,
+                      (value) {
+                        setState(() {
+                          _palidez = value;
+                        });
+                      },
+                      'Por favor, indique si presenta palidez',
+                    ),
+                    const SizedBox(height: 20),
+                      _buildHealthQuestion(
+                        '¿Ha mostrado el niño/a disminución en el rendimiento escolar o falta de concentración?',
+                        Icons.school,
+                        _disminucionRendimiento,
+                        (value) {
+                          setState(() {
+                            _disminucionRendimiento = value;
+                          });
+                        },
+                        'Por favor, indique si ha notado disminución en el rendimiento',
+                      ),
                   ],
                 ),
               ),
@@ -936,6 +963,19 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                             color: _getColorClasificacion(),
                                           ),
                                         ),
+                                                                                  const SizedBox(height: 4),
+                                          Text(
+                                            'Evaluación de anemia: ${_evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!)}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!) == 'Alta Probabilidad de anemia' 
+                                                  ? Colors.red 
+                                                  : Colors.orange,
+                                            ),
+                                          ),
+
+                                         
                                       ],
                                     ),
                                   ),
@@ -1299,7 +1339,21 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
       return 'Obesidad';
     }
   }
-
+  // MÉTODO NUEVO - AGREGAR DESPUÉS DEL ANTERIOR
+String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
+  // Si el IMC está por debajo del promedio
+  if (clasificacionIMC == 'Bajo peso') {
+    return 'Alta Probabilidad de anemia';
+  }
+  // Si el IMC está por encima del promedio  
+  else if (clasificacionIMC == 'Sobrepeso' || clasificacionIMC == 'Obesidad') {
+    return 'Riesgo moderado de anemia - Evaluar con profesional';
+  }
+  // Para IMC normal
+  else {
+    return 'Riesgo bajo de anemia';
+  }
+}
   Color _getColorClasificacion() {
     switch (_clasificacionIMC) {
       case 'Bajo peso':
@@ -1384,10 +1438,13 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
         'alimentosHierro': _alimentosHierro,
         'fatiga': _fatiga,
         'alimentacionBalanceada': _alimentacionBalanceada,
+        'palidez': _palidez, // Nuevo campo
+        'disminucionRendimiento': _disminucionRendimiento, // Nuevo campo
         'peso': peso,
         'talla': talla,
         'imc': _imcCalculado,
         'clasificacionIMC': _clasificacionIMC,
+        'evaluacionAnemia': _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!),
         'fechaRegistro': FieldValue.serverTimestamp(),
       });
 
