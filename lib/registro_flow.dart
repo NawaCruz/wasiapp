@@ -18,7 +18,6 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   final _nombresController = TextEditingController();
   final _apellidosController = TextEditingController();
   final _dniNinoController = TextEditingController();
-  final _residenciaController = TextEditingController();
   final _nombreTutorController = TextEditingController();
   final _dniPadreController = TextEditingController();
   
@@ -33,7 +32,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String? _alimentacionBalanceada;
   String? _palidez;
   String? _disminucionRendimiento;
-  String? _riesgoAnemia;
+  // String? _riesgoAnemia;
   String? _residenciaSeleccionada;
   
   // Controladores para medidas antropométricas
@@ -1431,7 +1430,6 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
         'dniNino': _dniNinoController.text.trim(),
         'fechaNacimiento': _fechaNacimiento,
         'sexo': _sexoSeleccionado,
-        'residencia': _residenciaController.text.trim(),
         'nombreTutor': _nombreTutorController.text.trim(),
         'dniPadre': _dniPadreController.text.trim(),
         'anemia': _anemia,
@@ -1440,6 +1438,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
         'alimentacionBalanceada': _alimentacionBalanceada,
         'palidez': _palidez, // Nuevo campo
         'disminucionRendimiento': _disminucionRendimiento, // Nuevo campo
+        'residenciaSeleccionada': _residenciaSeleccionada,
         'peso': peso,
         'talla': talla,
         'imc': _imcCalculado,
@@ -1574,7 +1573,6 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
     _nombresController.dispose();
     _apellidosController.dispose();
     _dniNinoController.dispose();
-    _residenciaController.dispose();
     _nombreTutorController.dispose();
     _dniPadreController.dispose();
     _pesoController.dispose();
