@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'cuestionario_nino.dart'; // Importación añadida
 
 class RegistrarNinoScreen extends StatefulWidget {
   const RegistrarNinoScreen({super.key});
@@ -80,61 +81,30 @@ class _RegistrarNinoScreenState extends State<RegistrarNinoScreen> {
         _isLoading = true;
       });
 
-      // Guardar en Firestore
-      final resultado = await _guardarEnFirestore();
+      // Preparar datos del niño para pasar al cuestionario
+      Map<String, dynamic> datosNino = {
+        'nombres': _nombresController.text.trim(),
+        'apellidos': _apellidosController.text.trim(),
+        'dniNino': _dniNinoController.text.trim(),
+        'fechaNacimiento': Timestamp.fromDate(_fechaNacimiento!),
+        'sexo': _sexoSeleccionado,
+        'residencia': _residenciaController.text.trim(),
+        'nombreTutor': _nombreTutorController.text.trim(),
+        'dniPadre': _dniPadreController.text.trim(),
+      };
 
+      // Navegar al cuestionario en lugar de guardar directamente
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
 
-        if (resultado) {
-          // Mostrar éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${_nombresController.text} ${_apellidosController.text} registrado exitosamente'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-
-          // Limpiar formulario después de registrar
-          _limpiarFormulario();
-        }
-      }
-    }
-  }
-
-  Future<bool> _guardarEnFirestore() async {
-    try {
-      await FirebaseFirestore.instance.collection('ninos').add({
-        'nombres': _nombresController.text.trim(),
-        'apellidos': _apellidosController.text.trim(),
-        'dniNino': _dniNinoController.text.trim(),
-        'fechaNacimiento': _fechaNacimiento,
-        'fechaNacimientoTimestamp': Timestamp.fromDate(_fechaNacimiento!),
-        'sexo': _sexoSeleccionado,
-        'residencia': _residenciaController.text.trim(),
-        'nombreTutor': _nombreTutorController.text.trim(),
-        'dniPadre': _dniPadreController.text.trim(),
-        'fechaRegistro': FieldValue.serverTimestamp(),
-        'creadoEl': Timestamp.now(),
-      });
-
-      debugPrint('✅ Niño registrado exitosamente en Firestore');
-      return true;
-    } catch (e) {
-      debugPrint('❌ Error al guardar en Firestore: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CuestionarioNinoScreen(datosNino: datosNino),
           ),
         );
       }
-      return false;
     }
   }
 
@@ -412,7 +382,7 @@ class _RegistrarNinoScreenState extends State<RegistrarNinoScreen> {
                                 ),
                               )
                             : const Text(
-                                'Registrar Niño',
+                                'Siguiente',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

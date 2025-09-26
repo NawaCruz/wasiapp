@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'registro_nino.dart'; // Archivo renombrado según convenciones
+import 'cuestionario_nino.dart';
 
 class MainHomeScreen extends StatefulWidget {
   const MainHomeScreen({super.key});
