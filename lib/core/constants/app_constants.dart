@@ -49,6 +49,7 @@ class Rutas {
   static const String estadisticas = '/estadisticas';
   static const String perfil = '/perfil';
   static const String configuracion = '/configuracion';
+  static const String registroFlow = '/registro_flow';
 }
 
 class MensajesValidacion {

@@ -28,7 +28,6 @@ class _LoginViewState extends State<LoginView> {
     if (!_formKey.currentState!.validate()) return;
 
     final authController = Provider.of<AuthController>(context, listen: false);
-    
     final success = await authController.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
@@ -73,7 +72,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Título
                         Text(
                           'Bienvenido',

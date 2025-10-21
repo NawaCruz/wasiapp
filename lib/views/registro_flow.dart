@@ -12,7 +12,7 @@ class RegistroNinoFlow extends StatefulWidget {
 class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  
+
   // Controladores para datos básicos
   final _formKey1 = GlobalKey<FormState>();
   final _nombresController = TextEditingController();
@@ -20,10 +20,10 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   final _dniNinoController = TextEditingController();
   final _nombreTutorController = TextEditingController();
   final _dniPadreController = TextEditingController();
-  
+
   DateTime? _fechaNacimiento;
   String? _sexoSeleccionado;
-  
+
   // Controladores para cuestionario de salud
   final _formKey2 = GlobalKey<FormState>();
   String? _anemia;
@@ -34,16 +34,16 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String? _disminucionRendimiento;
   // String? _riesgoAnemia;
   String? _residenciaSeleccionada;
-  
+
   // Controladores para medidas antropométricas
   final _formKey3 = GlobalKey<FormState>();
   final _pesoController = TextEditingController();
   final _tallaController = TextEditingController();
-  
+
   double? _imcCalculado;
   String? _clasificacionIMC;
   bool _isLoading = false;
-  
+
   final List<String> _opcionesSexo = ['Seleccionar', 'Masculino', 'Femenino'];
   final List<String> _opcionesSiNo = ['Seleccionar', 'Sí', 'No'];
   final List<String> _opcionesResidencia = ['Huancayo', 'El Tambo', 'Chilca', 'Pilcomayo', 'Sicaya', 'Otra'];
@@ -1344,7 +1344,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
   if (clasificacionIMC == 'Bajo peso') {
     return 'Alta Probabilidad de anemia';
   }
-  // Si el IMC está por encima del promedio  
+  // Si el IMC está por encima del promedio 
   else if (clasificacionIMC == 'Sobrepeso' || clasificacionIMC == 'Obesidad') {
     return 'Riesgo moderado de anemia - Evaluar con profesional';
   }

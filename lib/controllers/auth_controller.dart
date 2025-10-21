@@ -20,7 +20,6 @@ class AuthController extends ChangeNotifier {
       _clearError();
 
       final isValid = await UsuarioService.verificarCredenciales(usuario, contrasena);
-      
       if (isValid) {
         _usuarioActual = await UsuarioService.buscarPorUsuario(usuario);
         notifyListeners();

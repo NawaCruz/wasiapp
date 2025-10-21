@@ -27,10 +27,10 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     // TODO: Implementar carga real de estadísticas
     // final estadisticasUseCase = sl<ObtenerEstadisticasUseCase>();
     // final stats = await estadisticasUseCase.call();
-    
+
     // Simulación temporal
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (mounted) {
       setState(() {
         totalNinos = 45;
