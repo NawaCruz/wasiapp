@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'home.dart';
+import 'create_firestore_user_screen.dart';
 
 class FirestoreLoginScreen extends StatefulWidget {
   const FirestoreLoginScreen({super.key});
@@ -46,7 +48,7 @@ class _FirestoreLoginScreenState extends State<FirestoreLoginScreen> {
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainHomeScreen()),
         );
       }
     } catch (e) {
@@ -246,6 +248,20 @@ class _FirestoreLoginScreenState extends State<FirestoreLoginScreen> {
                           },
                     child: Text(
                       '¿Olvidó su contraseña?',
+                      style: TextStyle(color: Colors.blue.shade700),
+                    ),
+                  ),
+                  // Enlace para crear cuenta
+                  TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const CreateFirestoreUserScreen()),
+                            );
+                          },
+                    child: Text(
+                      '¿No tienes cuenta? Crear cuenta',
                       style: TextStyle(color: Colors.blue.shade700),
                     ),
                   ),
