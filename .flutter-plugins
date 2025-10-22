@@ -1,5 +1,16 @@
 # This is a generated file; do not edit or check into version control.
 cloud_firestore=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\cloud_firestore-5.6.12\\
 cloud_firestore_web=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\cloud_firestore_web-4.4.12\\
+file_selector_linux=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_linux-0.9.3+2\\
+file_selector_macos=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_macos-0.9.4+4\\
+file_selector_windows=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_windows-0.9.3+4\\
 firebase_core=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core-3.15.2\\
 firebase_core_web=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core_web-2.24.1\\
+flutter_plugin_android_lifecycle=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_plugin_android_lifecycle-2.0.31\\
+image_picker=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker-1.2.0\\
+image_picker_android=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_android-0.8.13+1\\
+image_picker_for_web=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_for_web-3.1.0\\
+image_picker_ios=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_ios-0.8.13\\
+image_picker_linux=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_linux-0.2.2\\
+image_picker_macos=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_macos-0.2.2\\
+image_picker_windows=C:\\Users\\landa\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\image_picker_windows-0.2.2\\

@@ -74,7 +74,7 @@ class NinoService {
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('nombres', isGreaterThanOrEqualTo: nombre)
-          .where('nombres', isLessThanOrEqualTo: nombre + '\uf8ff')
+          .where('nombres', isLessThanOrEqualTo: '$nombre\uf8ff')
           .where('activo', isEqualTo: true)
           .get();
 
@@ -122,9 +122,9 @@ class NinoService {
           .map((doc) => NinoModel.fromMap(doc.data(), doc.id))
           .toList();
 
-      int totalNinos = ninos.length;
-      int masculinos = ninos.where((n) => n.sexo == 'Masculino').length;
-      int femeninos = ninos.where((n) => n.sexo == 'Femenino').length;
+  final totalNinos = ninos.length;
+  final masculinos = ninos.where((n) => n.sexo == 'Masculino').length;
+  final femeninos = ninos.where((n) => n.sexo == 'Femenino').length;
 
       return {
         'totalNinos': totalNinos,

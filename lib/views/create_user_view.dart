@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../utils/validators.dart';
+import '../core/constants/app_constants.dart';
 
 class CreateUserView extends StatefulWidget {
   const CreateUserView({super.key});
@@ -12,24 +13,22 @@ class CreateUserView extends StatefulWidget {
 
 class _CreateUserViewState extends State<CreateUserView> {
   final _formKey = GlobalKey<FormState>();
-  final _usuarioController = TextEditingController();
+  final _emailController = TextEditingController();
   final _contrasenaController = TextEditingController();
   final _confirmarContrasenaController = TextEditingController();
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
-  final _emailController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
-    _usuarioController.dispose();
+    _emailController.dispose();
     _contrasenaController.dispose();
     _confirmarContrasenaController.dispose();
     _nombreController.dispose();
     _apellidoController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -39,7 +38,7 @@ class _CreateUserViewState extends State<CreateUserView> {
     final authController = Provider.of<AuthController>(context, listen: false);
 
     final success = await authController.crearUsuario(
-      usuario: _usuarioController.text.trim(),
+      usuario: _emailController.text.trim(), // Usamos el email como usuario
       contrasena: _contrasenaController.text.trim(),
       nombre: _nombreController.text.trim().isNotEmpty 
           ? _nombreController.text.trim() 
@@ -47,19 +46,17 @@ class _CreateUserViewState extends State<CreateUserView> {
       apellido: _apellidoController.text.trim().isNotEmpty 
           ? _apellidoController.text.trim() 
           : null,
-      email: _emailController.text.trim().isNotEmpty 
-          ? _emailController.text.trim() 
-          : null,
+      email: _emailController.text.trim(), // El email es obligatorio
     );
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Usuario creado exitosamente'),
+          content: Text('Usuario creado exitosamente. Iniciando sesión...'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacementNamed(Rutas.inicio);
     }
   }
 
@@ -135,14 +132,15 @@ class _CreateUserViewState extends State<CreateUserView> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Usuario
+                    // Email
                     TextFormField(
-                      controller: _usuarioController,
-                      validator: (value) => Validators.validarCampoRequerido(value, 'el usuario'),
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: Validators.validarEmail,
                       decoration: InputDecoration(
-                        labelText: 'Usuario *',
-                        hintText: 'Nombre de usuario único',
-                        prefixIcon: const Icon(Icons.person),
+                        labelText: 'Correo electrónico *',
+                        hintText: 'ejemplo@correo.com',
+                        prefixIcon: const Icon(Icons.email),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -236,27 +234,6 @@ class _CreateUserViewState extends State<CreateUserView> {
                         labelText: 'Apellido',
                         hintText: 'Apellidos',
                         prefixIcon: const Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          return Validators.validarEmail(value);
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'correo@ejemplo.com',
-                        prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

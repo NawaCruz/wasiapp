@@ -62,7 +62,7 @@ class AplicacionWasi extends StatelessWidget {
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             elevation: 2,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),

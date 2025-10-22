@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';               // aquí vive `Rutas`
-import '../../presentation/pages/pagina_principal.dart';
-import '../../presentation/pages/pagina_registrar_nino.dart';
+import '../../views/home_view.dart';
 import '../../views/registro_flow.dart';               // <- contiene class RegistroNinoFlow
 
 class RutasApp {
   /// Mapa de rutas estáticas
   static Map<String, WidgetBuilder> get rutas => {
-        Rutas.inicio:        (context) => const PaginaPrincipal(),
-        Rutas.registrarNino: (context) => const PaginaRegistrarNino(),
+        Rutas.inicio:        (context) => const HomeView(),
+        Rutas.registrarNino: (context) => const RegistroNinoFlow(),
         Rutas.registroFlow:  (context) => const RegistroNinoFlow(), // <- usa la clase REAL
       };
 
@@ -16,9 +15,9 @@ class RutasApp {
   static Route<dynamic>? alGenerarRuta(RouteSettings configuracion) {
     switch (configuracion.name) {
       case Rutas.inicio:
-        return _crearRuta(const PaginaPrincipal());
+        return _crearRuta(const HomeView());
       case Rutas.registrarNino:
-        return _crearRuta(const PaginaRegistrarNino());
+        return _crearRuta(const RegistroNinoFlow());
       case Rutas.registroFlow:
         return _crearRuta(const RegistroNinoFlow());   // <- idem
       default:
@@ -27,8 +26,8 @@ class RutasApp {
   }
 
   /// Ruta con transición deslizante
-  static PageRouteBuilder _crearRuta(Widget pagina) {
-    return PageRouteBuilder(
+  static PageRouteBuilder<void> _crearRuta(Widget pagina) {
+    return PageRouteBuilder<void>(
       pageBuilder: (_, __, ___) => pagina,
       transitionsBuilder: (_, anim, __, child) {
         const begin = Offset(1, 0);

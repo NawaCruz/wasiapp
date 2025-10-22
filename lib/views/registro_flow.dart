@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -156,7 +157,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   }
 
   Widget _buildStepIndicator(int step, String label) {
-    bool isActive = step <= _currentStep;
+    final isActive = step <= _currentStep;
     return Column(
       children: [
         AnimatedContainer(
@@ -824,8 +825,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                           return 'El peso es obligatorio';
                         }
                         // Limpiar el valor y verificar que solo contenga números y punto decimal
-                        String cleanValue = value.trim().replaceAll(',', '.');
-                        double? peso = double.tryParse(cleanValue);
+                        final cleanValue = value.trim().replaceAll(',', '.');
+                        final peso = double.tryParse(cleanValue);
                         if (peso == null || peso <= 0) {
                           return 'Ingrese un peso válido (solo números)';
                         }
@@ -836,7 +837,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                       onChanged: (value) {
                         // Limpiar automáticamente caracteres no válidos
-                        String cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
+                        final cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
                         if (cleanValue != value) {
                           _pesoController.value = _pesoController.value.copyWith(
                             text: cleanValue,
@@ -858,8 +859,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                           return 'La talla es obligatoria';
                         }
                         // Limpiar el valor y verificar que solo contenga números y punto decimal
-                        String cleanValue = value.trim().replaceAll(',', '.');
-                        double? talla = double.tryParse(cleanValue);
+                        final cleanValue = value.trim().replaceAll(',', '.');
+                        final talla = double.tryParse(cleanValue);
                         if (talla == null || talla <= 0) {
                           return 'Ingrese una talla válida (solo números)';
                         }
@@ -870,7 +871,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                       onChanged: (value) {
                         // Limpiar automáticamente caracteres no válidos
-                        String cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
+                        final cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
                         if (cleanValue != value) {
                           _tallaController.value = _tallaController.value.copyWith(
                             text: cleanValue,
@@ -1147,6 +1148,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -1167,7 +1169,13 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
       items: items.map((String item) {
         return DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style: const TextStyle(fontSize: 14)),
+          child: Text(
+            item,
+            style: const TextStyle(fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            softWrap: false,
+          ),
         );
       }).toList(),
       onChanged: onChanged,
@@ -1215,6 +1223,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
           ),
           child: DropdownButtonFormField<String>(
             value: value,
+            isExpanded: true,
             decoration: InputDecoration(
               hintText: 'Seleccione una opción',
               border: OutlineInputBorder(
@@ -1231,9 +1240,10 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                 value: option,
                 child: Text(
                   option,
-                  style: const TextStyle(
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
                 ),
               );
             }).toList(),
@@ -1279,15 +1289,15 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   void _calcularIMC() {
     if (_pesoController.text.isNotEmpty && _tallaController.text.isNotEmpty) {
       // Limpiar valores antes de convertir
-      String pesoText = _pesoController.text.trim().replaceAll(',', '.');
-      String tallaText = _tallaController.text.trim().replaceAll(',', '.');
+      final pesoText = _pesoController.text.trim().replaceAll(',', '.');
+      final tallaText = _tallaController.text.trim().replaceAll(',', '.');
       
-      double? peso = double.tryParse(pesoText);
-      double? talla = double.tryParse(tallaText);
+      final peso = double.tryParse(pesoText);
+      final talla = double.tryParse(tallaText);
       
       if (peso != null && talla != null && talla > 0 && peso > 0) {
-        double tallaEnMetros = talla / 100;
-        double imc = peso / (tallaEnMetros * tallaEnMetros);
+        final tallaEnMetros = talla / 100;
+        final imc = peso / (tallaEnMetros * tallaEnMetros);
         
         setState(() {
           _imcCalculado = imc;
@@ -1310,7 +1320,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String _clasificarIMC(double imc) {
     if (_fechaNacimiento == null) return 'No se puede calcular sin fecha de nacimiento';
     
-    int edad = DateTime.now().year - _fechaNacimiento!.year;
+    final edad = DateTime.now().year - _fechaNacimiento!.year;
     
     if (edad < 2) {
       // Para menores de 2 años, usar percentiles específicos
@@ -1410,11 +1420,11 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
 
     try {
       // Limpiar y validar los valores numéricos de forma segura
-      String pesoText = _pesoController.text.trim().replaceAll(',', '.');
-      String tallaText = _tallaController.text.trim().replaceAll(',', '.');
+      final pesoText = _pesoController.text.trim().replaceAll(',', '.');
+      final tallaText = _tallaController.text.trim().replaceAll(',', '.');
       
-      double? peso = double.tryParse(pesoText);
-      double? talla = double.tryParse(tallaText);
+      final peso = double.tryParse(pesoText);
+      final talla = double.tryParse(tallaText);
       
       if (peso == null || talla == null) {
         throw Exception('Error en los valores numéricos ingresados. Por favor, verifique que solo contengan números.');
@@ -1477,7 +1487,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
   }
 
   Future<void> _mostrarPantallaExito() async {
-    await showDialog(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {

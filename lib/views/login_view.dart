@@ -35,7 +35,7 @@ class _LoginViewState extends State<LoginView> {
 
     if (success && mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeView()),
+        MaterialPageRoute<void>(builder: (_) => const HomeView()),
       );
     }
   }
@@ -197,7 +197,7 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () {
                             authController.clearError();
                             Navigator.of(context).push(
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (_) => const CreateUserView(),
                               ),
                             );

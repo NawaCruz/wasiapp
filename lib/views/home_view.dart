@@ -1,7 +1,9 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+// import 'package:image_picker/image_picker.dart';
+// import 'dart:io';
+import 'anemia_diagnostico_view.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
 import 'login_view.dart';
@@ -15,9 +17,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   int _selectedIndex = 0;
-  File? _selectedImage;
-  String? _anemiaResult;
-  final ImagePicker _picker = ImagePicker();
+  // Campos de la versión mock de Anemia eliminados
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _HomeViewState extends State<HomeView> {
       'WASI App - Inicio',
       'Plan Nutricional',
       'Evaluación',
-      'Anemia (Foto)',
+      'Anemia',
       'Perfil',
     ];
 
@@ -152,75 +152,8 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
 
-            // 3: Anemia (tomar foto + análisis mock)
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.camera_alt,
-                    size: 72,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Analizar propensión a anemia mediante foto',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Toma una foto del labio o piel (ejemplo) y obtén un resultado indicativo.\n'
-                    'Esto es un prototipo; no es diagnóstico médico.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Si ya hay imagen seleccionada
-                  if (_selectedImage != null)
-                    Column(
-                      children: [
-                        Image.file(
-                          _selectedImage!,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _anemiaResult ?? '',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _anemiaResult?.toLowerCase().contains('propenso') == true
-                                ? Colors.red
-                                : Colors.green,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedImage = null;
-                              _anemiaResult = null;
-                            });
-                          },
-                          child: const Text('Tomar otra foto'),
-                        ),
-                      ],
-                    )
-                  // Si aún no hay imagen seleccionada
-                  else
-                    ElevatedButton.icon(
-                      onPressed: _pickImageAndAnalyze,
-                      icon: const Icon(Icons.camera_alt),
-                      label: const Text('Tomar Foto'),
-                    ),
-                ],
-              ),
-            ),
+            // 3: Anemia (nuevo diagnóstico RF-05)
+            const AnemiaDiagnosticoView(),
 
 
             // 4: Perfil / Usuario
@@ -535,7 +468,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _handleLogout() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cerrar Sesión'),
@@ -550,7 +483,7 @@ class _HomeViewState extends State<HomeView> {
               Navigator.of(context).pop();
               Provider.of<AuthController>(context, listen: false).logout();
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginView()),
+                MaterialPageRoute<void>(builder: (_) => const LoginView()),
               );
             },
             child: const Text('Cerrar Sesión'),
@@ -587,31 +520,5 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Nueva funcionalidad: seleccionar imagen y análisis mock
-  Future<void> _pickImageAndAnalyze() async {
-    try {
-      final XFile? picked = await _picker.pickImage(source: ImageSource.camera, maxWidth: 1024, maxHeight: 1024, imageQuality: 80);
-      if (picked == null) return;
-
-      setState(() {
-        _selectedImage = File(picked.path);
-        _anemiaResult = 'Analizando...';
-      });
-
-      // Heurística mock: para demo rápida no decodificamos la imagen; usar paquetes como 'image' para análisis real.
-      // Aquí devolvemos un resultado aleatorio/heurístico:
-      await Future.delayed(const Duration(seconds: 1));
-      final isPropenso = DateTime.now().millisecondsSinceEpoch % 2 == 0;
-
-      setState(() {
-        _anemiaResult = isPropenso ? 'Posible propensión a anemia (resultado indicativo).' : 'Poco propenso a anemia (resultado indicativo).';
-      });
-    } catch (e) {
-      setState(() {
-        _anemiaResult = null;
-        _selectedImage = null;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al tomar la foto: $e')));
-    }
-  }
+  // Flujo mock anterior de Anemia eliminado (sustituido por AnemiaDiagnosticoView)
 }

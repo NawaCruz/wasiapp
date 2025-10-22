@@ -74,7 +74,10 @@ class AuthController extends ChangeNotifier {
         activo: true,
       );
 
-      await UsuarioService.crearUsuario(nuevoUsuario);
+      final userId = await UsuarioService.crearUsuario(nuevoUsuario);
+      // Actualizar el usuario con el ID asignado y establecerlo como usuario actual
+      _usuarioActual = nuevoUsuario.copyWith(id: userId);
+      notifyListeners();
       return true;
     } catch (e) {
       _setError('Error al crear usuario: ${e.toString()}');
