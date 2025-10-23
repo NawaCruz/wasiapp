@@ -648,7 +648,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                   ),
                   child: Center(
                     child: Text(
-                      '${r.score.toStringAsFixed(0)}',
+                      r.score.toStringAsFixed(0),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
