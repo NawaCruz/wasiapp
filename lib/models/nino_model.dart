@@ -16,6 +16,18 @@ class NinoModel {
   final String? clasificacionIMC;
   final DateTime fechaRegistro;
   final bool activo;
+  
+  // Campos del cuestionario de salud
+  final String? anemia;
+  final String? alimentosHierro;
+  final String? fatiga;
+  final String? alimentacionBalanceada;
+  final String? palidez;
+  final String? disminucionRendimiento;
+  final String? evaluacionAnemia;
+  
+  // Campo para asociar con el usuario
+  final String? usuarioId;
 
   NinoModel({
     required this.id,
@@ -33,6 +45,14 @@ class NinoModel {
     this.clasificacionIMC,
     required this.fechaRegistro,
     this.activo = true,
+    this.anemia,
+    this.alimentosHierro,
+    this.fatiga,
+    this.alimentacionBalanceada,
+    this.palidez,
+    this.disminucionRendimiento,
+    this.evaluacionAnemia,
+    this.usuarioId,
   });
 
   // Factory constructor para crear desde Map (Firestore)
@@ -51,8 +71,18 @@ class NinoModel {
       talla: (map['talla'] ?? 0.0).toDouble(),
       imc: map['imc']?.toDouble(),
       clasificacionIMC: map['clasificacionIMC'],
-      fechaRegistro: (map['fechaRegistro'] as Timestamp).toDate(),
+      fechaRegistro: map['fechaRegistro'] != null 
+          ? (map['fechaRegistro'] as Timestamp).toDate()
+          : DateTime.now(),
       activo: map['activo'] ?? true,
+      anemia: map['anemia'],
+      alimentosHierro: map['alimentosHierro'],
+      fatiga: map['fatiga'],
+      alimentacionBalanceada: map['alimentacionBalanceada'],
+      palidez: map['palidez'],
+      disminucionRendimiento: map['disminucionRendimiento'],
+      evaluacionAnemia: map['evaluacionAnemia'],
+      usuarioId: map['usuarioId'],
     );
   }
 
@@ -73,6 +103,14 @@ class NinoModel {
       'clasificacionIMC': clasificacionIMC,
       'fechaRegistro': Timestamp.fromDate(fechaRegistro),
       'activo': activo,
+      'anemia': anemia,
+      'alimentosHierro': alimentosHierro,
+      'fatiga': fatiga,
+      'alimentacionBalanceada': alimentacionBalanceada,
+      'palidez': palidez,
+      'disminucionRendimiento': disminucionRendimiento,
+      'evaluacionAnemia': evaluacionAnemia,
+      'usuarioId': usuarioId,
     };
   }
 
@@ -93,6 +131,14 @@ class NinoModel {
     String? clasificacionIMC,
     DateTime? fechaRegistro,
     bool? activo,
+    String? anemia,
+    String? alimentosHierro,
+    String? fatiga,
+    String? alimentacionBalanceada,
+    String? palidez,
+    String? disminucionRendimiento,
+    String? evaluacionAnemia,
+    String? usuarioId,
   }) {
     return NinoModel(
       id: id ?? this.id,
@@ -110,6 +156,14 @@ class NinoModel {
       clasificacionIMC: clasificacionIMC ?? this.clasificacionIMC,
       fechaRegistro: fechaRegistro ?? this.fechaRegistro,
       activo: activo ?? this.activo,
+      anemia: anemia ?? this.anemia,
+      alimentosHierro: alimentosHierro ?? this.alimentosHierro,
+      fatiga: fatiga ?? this.fatiga,
+      alimentacionBalanceada: alimentacionBalanceada ?? this.alimentacionBalanceada,
+      palidez: palidez ?? this.palidez,
+      disminucionRendimiento: disminucionRendimiento ?? this.disminucionRendimiento,
+      evaluacionAnemia: evaluacionAnemia ?? this.evaluacionAnemia,
+      usuarioId: usuarioId ?? this.usuarioId,
     );
   }
 

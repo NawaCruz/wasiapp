@@ -22,7 +22,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
   String _sexo = 'Masculino';
   double _peso = 15;
   double _talla = 1.0;
-  double? _hemoglobina;
 
   // Cuestionario
   bool _palidez = false;
@@ -36,6 +35,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
   File? _image;
   double? _imgScore;
 
+  // Niño seleccionado
+  NinoModel? _ninoSeleccionado;
+
   AnemiaRiskResult? _resultado;
 
   @override
@@ -44,7 +46,12 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     // Intentar prefijar con datos del primer niño disponible
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ninos = context.read<NinoController>().ninos;
-      if (ninos.isNotEmpty) _prefillFromChild(ninos.first);
+      if (ninos.isNotEmpty) {
+        setState(() {
+          _ninoSeleccionado = ninos.first;
+        });
+        _prefillFromChild(ninos.first);
+      }
     });
   }
 
@@ -55,6 +62,15 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       _sexo = n.sexo.isNotEmpty ? n.sexo : 'Masculino';
       _peso = n.peso;
       _talla = n.talla > 3 ? n.talla / 100.0 : n.talla; // acepta cm o m
+      
+      // Usar datos del cuestionario de salud si están disponibles
+      _palidez = n.palidez == 'Sí';
+      _fatiga = n.fatiga == 'Sí';
+      _bajaIngestaHierro = n.alimentosHierro == 'No'; // Invertir lógica
+      _apetitoBajo = n.alimentacionBalanceada == 'No'; // Invertir lógica
+      
+      // Si hay evaluación previa de anemia, considerar para infecciones frecuentes
+      _infecciones = n.anemia == 'Sí';
     });
   }
 
@@ -78,7 +94,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       sexo: _sexo,
       pesoKg: _peso,
       tallaM: _talla,
-      hemoglobina: _hemoglobina,
+      hemoglobina: null, // No necesitamos hemoglobina
       palidez: _palidez,
       fatiga: _fatiga,
       apetitoBajo: _apetitoBajo,
@@ -190,6 +206,106 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Selector de niño
+                        _buildSectionCard(
+                          title: 'Seleccionar Paciente',
+                          icon: Icons.child_care,
+                          color: Colors.green,
+                          child: Consumer<NinoController>(
+                            builder: (context, ninoController, child) {
+                              final ninos = ninoController.ninos;
+                              if (ninos.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text(
+                                    'No hay niños registrados. Registra un niño primero.',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                );
+                              }
+                              
+                              return Column(
+                                children: [
+                                  DropdownButtonFormField<NinoModel>(
+                                    value: _ninoSeleccionado,
+                                    decoration: InputDecoration(
+                                      labelText: 'Selecciona un niño',
+                                      prefixIcon: Icon(Icons.person_search, color: Colors.green[600]),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.green[50],
+                                    ),
+                                    items: ninos.map((nino) {
+                                      return DropdownMenuItem<NinoModel>(
+                                        value: nino,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              nino.nombreCompleto,
+                                              style: const TextStyle(fontWeight: FontWeight.w600),
+                                            ),
+                                            Text(
+                                              'DNI: ${nino.dniNino} • ${nino.edad} años',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (nino) {
+                                      if (nino != null) {
+                                        setState(() {
+                                          _ninoSeleccionado = nino;
+                                        });
+                                        _prefillFromChild(nino);
+                                      }
+                                    },
+                                    validator: (value) {
+                                      if (value == null) {
+                                        return 'Por favor selecciona un niño';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  if (_ninoSeleccionado != null) ...[
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green[100],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.info, color: Colors.green[700], size: 20),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Los datos se han precargado automáticamente del registro de ${_ninoSeleccionado!.nombres}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.green[700],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
                         // Datos antropométricos
                         _buildSectionCard(
                           title: 'Datos del Paciente',
@@ -225,38 +341,45 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: _numberField(
+                                    child: _readOnlyField(
                                       label: 'Peso (kg)',
-                                      initial: _peso.toStringAsFixed(1),
-                                      onSaved: (v) => _peso = double.tryParse(v ?? '') ?? _peso,
-                                      min: 3,
-                                      max: 80,
+                                      value: _peso.toStringAsFixed(1),
                                       icon: Icons.monitor_weight,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _numberField(
+                                    child: _readOnlyField(
                                       label: 'Talla (m)',
-                                      initial: _talla.toStringAsFixed(2),
-                                      onSaved: (v) => _talla = double.tryParse(v ?? '') ?? _talla,
-                                      min: 0.5,
-                                      max: 2.0,
-                                      step: 0.01,
+                                      value: _talla.toStringAsFixed(2),
                                       icon: Icons.height,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              _numberField(
-                                label: 'Hemoglobina (g/dL) - Opcional',
-                                initial: _hemoglobina?.toStringAsFixed(1) ?? '',
-                                onSaved: (v) => _hemoglobina = (v?.isEmpty ?? true) ? null : double.tryParse(v!),
-                                min: 5,
-                                max: 18,
-                                step: 0.1,
-                                icon: Icons.water_drop,
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.blue[200]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info, color: Colors.blue[600], size: 20),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Los datos de peso y talla se toman automáticamente del registro del niño seleccionado.',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.blue[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -742,6 +865,51 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _readOnlyField({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey[50],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

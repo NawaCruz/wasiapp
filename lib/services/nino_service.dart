@@ -51,6 +51,24 @@ class NinoService {
     }
   }
 
+  // Obtener niños activos por usuario
+  static Future<List<NinoModel>> obtenerNinosPorUsuario(String usuarioId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('usuarioId', isEqualTo: usuarioId)
+          .where('activo', isEqualTo: true)
+          .orderBy('fechaRegistro', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => NinoModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Error al obtener niños del usuario: $e');
+    }
+  }
+
   // Buscar niños por DNI
   static Future<List<NinoModel>> buscarPorDNI(String dni) async {
     try {
@@ -110,6 +128,23 @@ class NinoService {
     }
   }
 
+  // Verificar si existe DNI para un usuario específico
+  static Future<bool> existeDNIParaUsuario(String dni, String usuarioId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('dniNino', isEqualTo: dni)
+          .where('usuarioId', isEqualTo: usuarioId)
+          .where('activo', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('Error al verificar DNI: $e');
+    }
+  }
+
   // Obtener estadísticas básicas
   static Future<Map<String, dynamic>> obtenerEstadisticas() async {
     try {
@@ -139,6 +174,31 @@ class NinoService {
       };
     } catch (e) {
       throw Exception('Error al obtener estadísticas: $e');
+    }
+  }
+
+  // Obtener estadísticas por usuario
+  static Future<Map<String, dynamic>> obtenerEstadisticasUsuario(String usuarioId) async {
+    try {
+      final ninos = await obtenerNinosPorUsuario(usuarioId);
+
+      final totalNinos = ninos.length;
+      final masculinos = ninos.where((n) => n.sexo == 'Masculino').length;
+      final femeninos = ninos.where((n) => n.sexo == 'Femenino').length;
+
+      return {
+        'totalNinos': totalNinos,
+        'masculinos': masculinos,
+        'femeninos': femeninos,
+        'registrosHoy': ninos.where((n) {
+          final hoy = DateTime.now();
+          return n.fechaRegistro.year == hoy.year &&
+                 n.fechaRegistro.month == hoy.month &&
+                 n.fechaRegistro.day == hoy.day;
+        }).length,
+      };
+    } catch (e) {
+      throw Exception('Error al obtener estadísticas del usuario: $e');
     }
   }
 
