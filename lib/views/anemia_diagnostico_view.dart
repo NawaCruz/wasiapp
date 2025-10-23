@@ -530,7 +530,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     required void Function(String?) onSaved,
     required num min,
     required num max,
-    double step = 1,
     IconData? icon,
   }) {
     return TextFormField(
