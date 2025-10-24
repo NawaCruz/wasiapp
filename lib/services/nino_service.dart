@@ -54,17 +54,32 @@ class NinoService {
   // Obtener niños activos por usuario
   static Future<List<NinoModel>> obtenerNinosPorUsuario(String usuarioId) async {
     try {
+      print('DEBUG Service: Consultando niños para usuario: $usuarioId');
+      
+      // Simplificamos la consulta para evitar problemas de índices
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('usuarioId', isEqualTo: usuarioId)
-          .where('activo', isEqualTo: true)
-          .orderBy('fechaRegistro', descending: true)
           .get();
 
-      return querySnapshot.docs
-          .map((doc) => NinoModel.fromMap(doc.data(), doc.id))
+      print('DEBUG Service: Documentos encontrados: ${querySnapshot.docs.length}');
+      
+      final ninos = querySnapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            print('DEBUG Service: Documento ${doc.id}: usuarioId=${data['usuarioId']}, activo=${data['activo']}');
+            return NinoModel.fromMap(data, doc.id);
+          })
+          .where((nino) => nino.activo) // Filtrar activos en código
           .toList();
+
+      // Ordenar por fecha en código
+      ninos.sort((a, b) => b.fechaRegistro.compareTo(a.fechaRegistro));
+
+      print('DEBUG Service: Niños filtrados: ${ninos.length}');
+      return ninos;
     } catch (e) {
+      print('DEBUG Service: Error al obtener niños del usuario: $e');
       throw Exception('Error al obtener niños del usuario: $e');
     }
   }
@@ -131,15 +146,19 @@ class NinoService {
   // Verificar si existe DNI para un usuario específico
   static Future<bool> existeDNIParaUsuario(String dni, String usuarioId) async {
     try {
+      // Simplificamos la consulta para evitar problemas de índices
       final querySnapshot = await _firestore
           .collection(_collection)
-          .where('dniNino', isEqualTo: dni)
           .where('usuarioId', isEqualTo: usuarioId)
-          .where('activo', isEqualTo: true)
-          .limit(1)
           .get();
 
-      return querySnapshot.docs.isNotEmpty;
+      // Filtrar por DNI y activo en código
+      final exists = querySnapshot.docs.any((doc) {
+        final data = doc.data();
+        return data['dniNino'] == dni && (data['activo'] ?? true);
+      });
+
+      return exists;
     } catch (e) {
       throw Exception('Error al verificar DNI: $e');
     }
@@ -209,6 +228,31 @@ class NinoService {
       return ninos.isNotEmpty;
     } catch (e) {
       throw Exception('Error al verificar DNI: $e');
+    }
+  }
+
+  // DEBUG: Obtener todos los niños sin filtros (para debugging)
+  static Future<List<NinoModel>> obtenerTodosLosNinos() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .get();
+
+      print('DEBUG Service: Total documentos en Firestore: ${querySnapshot.docs.length}');
+      
+      final ninos = querySnapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            print('DEBUG Service: Documento ${doc.id}: $data');
+            return NinoModel.fromMap(data, doc.id);
+          })
+          .toList();
+
+      print('DEBUG Service: Niños parseados: ${ninos.length}');
+      return ninos;
+    } catch (e) {
+      print('DEBUG Service: Error obteniendo todos los niños: $e');
+      throw Exception('Error al obtener todos los niños: $e');
     }
   }
 }

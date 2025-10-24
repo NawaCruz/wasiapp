@@ -315,4 +315,23 @@ class NinoController extends ChangeNotifier {
     _ninosFiltrados = List.from(_ninos);
     notifyListeners();
   }
+
+  // DEBUG: Método para verificar todos los datos en Firestore
+  Future<void> debugTodosLosDatos() async {
+    try {
+      print('DEBUG Controller: Iniciando debug de todos los datos...');
+      final todosLosNinos = await NinoService.obtenerTodosLosNinos();
+      print('DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
+      
+      for (var nino in todosLosNinos) {
+        print('DEBUG Controller: - ${nino.nombres} ${nino.apellidos}');
+        print('  ID: ${nino.id}');
+        print('  Usuario ID: ${nino.usuarioId}');
+        print('  Activo: ${nino.activo}');
+        print('  ---');
+      }
+    } catch (e) {
+      print('DEBUG Controller: Error en debug: $e');
+    }
+  }
 }

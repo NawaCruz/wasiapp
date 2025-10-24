@@ -28,17 +28,28 @@ class _HomeViewState extends State<HomeView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authController = Provider.of<AuthController>(context, listen: false);
       final ninoController = Provider.of<NinoController>(context, listen: false);
-      final usuarioId = authController.usuarioActual?.id;
       
-      print('DEBUG HomeView: Usuario ID = $usuarioId');
-      print('DEBUG HomeView: Usuario actual = ${authController.usuarioActual?.nombre}');
+      print('DEBUG HomeView: === INICIO DEBUG ===');
+      print('DEBUG HomeView: Usuario actual = ${authController.usuarioActual}');
+      print('DEBUG HomeView: Usuario ID = ${authController.usuarioActual?.id}');
+      print('DEBUG HomeView: Usuario nombre = ${authController.usuarioActual?.nombre}');
+      print('DEBUG HomeView: IsLoggedIn = ${authController.isLoggedIn}');
+      
+      final usuarioId = authController.usuarioActual?.id;
       
       if (usuarioId != null) {
         print('DEBUG HomeView: Cargando niños para usuario $usuarioId');
-        ninoController.cargarNinosPorUsuario(usuarioId);
-        ninoController.cargarEstadisticasUsuario(usuarioId);
+        ninoController.cargarNinosPorUsuario(usuarioId).then((_) {
+          print('DEBUG HomeView: Niños cargados: ${ninoController.ninos.length}');
+        });
+        ninoController.cargarEstadisticasUsuario(usuarioId).then((_) {
+          print('DEBUG HomeView: Estadísticas cargadas: ${ninoController.estadisticas}');
+        });
       } else {
         print('DEBUG HomeView: Usuario ID es null, no se pueden cargar niños');
+        print('DEBUG HomeView: Redirigiendo al login...');
+        // Si no hay usuario, redirigir al login
+        Navigator.pushReplacementNamed(context, '/login');
       }
     });
   }
@@ -79,6 +90,26 @@ class _HomeViewState extends State<HomeView> {
                   },
                   icon: const Icon(Icons.refresh),
                   tooltip: 'Actualizar datos',
+                ),
+                IconButton(
+                  onPressed: () async {
+                    final ninoController = Provider.of<NinoController>(context, listen: false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Ejecutando debug completo...'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                    await ninoController.debugTodosLosDatos();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Debug completado - revisa la consola y la info en pantalla'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bug_report, color: Colors.red),
+                  tooltip: 'DEBUG: Ver todos los datos',
                 ),
                 PopupMenuButton<String>(
                   onSelected: (value) {
@@ -440,6 +471,43 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
             const SizedBox(height: 16),
+            
+            // DEBUG: Información de estado
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'DEBUG INFO:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[700],
+                    ),
+                  ),
+                  Text(
+                    'Total niños: ${ninoController.ninos.length}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                  Text(
+                    'Loading: ${ninoController.isLoading}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                  Text(
+                    'Error: ${ninoController.errorMessage ?? 'No hay errores'}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
             if (ninos.isEmpty)
               const Center(
                 child: Padding(
