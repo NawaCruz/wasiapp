@@ -22,7 +22,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
   String _sexo = 'Masculino';
   double _peso = 15;
   double _talla = 1.0;
-  double? _hemoglobina;
 
   // Cuestionario
   bool _palidez = false;
@@ -36,6 +35,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
   File? _image;
   double? _imgScore;
 
+  // Niño seleccionado
+  NinoModel? _ninoSeleccionado;
+
   AnemiaRiskResult? _resultado;
 
   @override
@@ -44,7 +46,12 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     // Intentar prefijar con datos del primer niño disponible
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ninos = context.read<NinoController>().ninos;
-      if (ninos.isNotEmpty) _prefillFromChild(ninos.first);
+      if (ninos.isNotEmpty) {
+        setState(() {
+          _ninoSeleccionado = ninos.first;
+        });
+        _prefillFromChild(ninos.first);
+      }
     });
   }
 
@@ -55,6 +62,15 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       _sexo = n.sexo.isNotEmpty ? n.sexo : 'Masculino';
       _peso = n.peso;
       _talla = n.talla > 3 ? n.talla / 100.0 : n.talla; // acepta cm o m
+      
+      // Usar datos del cuestionario de salud si están disponibles
+      _palidez = n.palidez == 'Sí';
+      _fatiga = n.fatiga == 'Sí';
+      _bajaIngestaHierro = n.alimentosHierro == 'No'; // Invertir lógica
+      _apetitoBajo = n.alimentacionBalanceada == 'No'; // Invertir lógica
+      
+      // Si hay evaluación previa de anemia, considerar para infecciones frecuentes
+      _infecciones = n.anemia == 'Sí';
     });
   }
 
@@ -78,7 +94,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       sexo: _sexo,
       pesoKg: _peso,
       tallaM: _talla,
-      hemoglobina: _hemoglobina,
+      hemoglobina: null, // No necesitamos hemoglobina
       palidez: _palidez,
       fatiga: _fatiga,
       apetitoBajo: _apetitoBajo,
@@ -190,6 +206,492 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Selector de niño
+                        _buildSectionCard(
+                          title: 'Seleccionar Paciente',
+                          icon: Icons.child_care,
+                          color: Colors.green,
+                          child: Consumer<NinoController>(
+                            builder: (context, ninoController, child) {
+                              final ninos = ninoController.ninos;
+                              if (ninos.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text(
+                                    'No hay niños registrados. Registra un niño primero.',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                );
+                              }
+                              
+                              return Column(
+                                children: [
+                                  // Mejorado: Dropdown con mejor diseño
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      gradient: LinearGradient(
+                                        colors: [Colors.green[100]!, Colors.green[50]!],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.green.withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: Colors.green[200]!, width: 1),
+                                      ),
+                                      child: DropdownButtonFormField<NinoModel>(
+                                        value: _ninoSeleccionado,
+                                        decoration: InputDecoration(
+                                          labelText: 'Selecciona un paciente',
+                                          hintText: 'Toca aquí para elegir un paciente',
+                                          labelStyle: TextStyle(
+                                            color: Colors.green[700],
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                          hintStyle: TextStyle(
+                                            color: Colors.grey[500],
+                                            fontSize: 13,
+                                          ),
+                                          prefixIcon: Container(
+                                            margin: const EdgeInsets.all(12),
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [Colors.green[400]!, Colors.green[600]!],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius: BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.green.withOpacity(0.4),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(Icons.person_search, color: Colors.white, size: 18),
+                                          ),
+                                          suffixIcon: Container(
+                                            margin: const EdgeInsets.only(right: 12),
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[100],
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Icon(Icons.expand_more, color: Colors.green[700], size: 20),
+                                          ),
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                                        ),
+                                      dropdownColor: Colors.white,
+                                      items: ninos.map((nino) {
+                                        return DropdownMenuItem<NinoModel>(
+                                          value: nino,
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[50],
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.grey[200]!),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                // Avatar del niño con sombra
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(25),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: (nino.sexo == 'Masculino' ? Colors.blue : Colors.pink).withOpacity(0.3),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: CircleAvatar(
+                                                    radius: 22,
+                                                    backgroundColor: nino.sexo == 'Masculino' 
+                                                        ? Colors.blue[100] 
+                                                        : Colors.pink[100],
+                                                    child: Icon(
+                                                      nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                                                      color: nino.sexo == 'Masculino' 
+                                                          ? Colors.blue[700] 
+                                                          : Colors.pink[700],
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 14),
+                                                // Información del niño
+                                                Flexible(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        nino.nombreCompleto,
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.w700,
+                                                          fontSize: 15,
+                                                          color: Colors.black87,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Wrap(
+                                                        spacing: 6,
+                                                        runSpacing: 2,
+                                                        children: [
+                                                          Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.blue[50],
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              border: Border.all(color: Colors.blue[200]!),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Icon(Icons.badge, size: 12, color: Colors.blue[600]),
+                                                                const SizedBox(width: 3),
+                                                                Text(
+                                                                  'DNI: ${nino.dniNino}',
+                                                                  style: TextStyle(
+                                                                    fontSize: 10,
+                                                                    color: Colors.blue[700],
+                                                                    fontWeight: FontWeight.w500,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.orange[50],
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              border: Border.all(color: Colors.orange[200]!),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Icon(Icons.cake, size: 12, color: Colors.orange[600]),
+                                                                const SizedBox(width: 3),
+                                                                Text(
+                                                                  '${nino.edad} años',
+                                                                  style: TextStyle(
+                                                                    fontSize: 10,
+                                                                    color: Colors.orange[700],
+                                                                    fontWeight: FontWeight.w500,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (nino) {
+                                        if (nino != null) {
+                                          setState(() {
+                                            _ninoSeleccionado = nino;
+                                          });
+                                          _prefillFromChild(nino);
+                                        }
+                                      },
+                                      validator: (value) {
+                                        if (value == null) {
+                                          return 'Por favor selecciona un niño';
+                                        }
+                                        return null;
+                                      },
+                                      icon: const SizedBox.shrink(), // Ocultar el icono por defecto
+                                    ),
+                                  ),
+                                ),
+                                
+                                // Mensaje cuando no hay paciente seleccionado
+                                if (_ninoSeleccionado == null) ...[
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.blue[50]!, Colors.blue[100]!.withOpacity(0.3)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.blue[200]!, width: 1),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.blue.withOpacity(0.1),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue[500],
+                                            borderRadius: BorderRadius.circular(10),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.blue.withOpacity(0.3),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(Icons.info, color: Colors.white, size: 18),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '¡Selecciona un paciente!',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.blue[800],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Para continuar con el diagnóstico, primero selecciona un paciente del menú desplegable.',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.blue[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                  
+                                  // Información del niño seleccionado mejorada
+                                  if (_ninoSeleccionado != null) ...[
+                                    const SizedBox(height: 20),
+                                    Container(
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [Colors.green[50]!, Colors.white],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: Colors.green[200]!, width: 1.5),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.green.withOpacity(0.08),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green[500],
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.green.withOpacity(0.3),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'Paciente Seleccionado',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.green[800],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.green[100]!),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.05),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    // Avatar más grande con efectos
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(30),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: (_ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink).withOpacity(0.3),
+                                                            blurRadius: 12,
+                                                            offset: const Offset(0, 4),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: CircleAvatar(
+                                                        radius: 30,
+                                                        backgroundColor: _ninoSeleccionado!.sexo == 'Masculino' 
+                                                            ? Colors.blue[100] 
+                                                            : Colors.pink[100],
+                                                        child: Icon(
+                                                          _ninoSeleccionado!.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                                                          color: _ninoSeleccionado!.sexo == 'Masculino' 
+                                                              ? Colors.blue[700] 
+                                                              : Colors.pink[700],
+                                                          size: 36,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 20),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            _ninoSeleccionado!.nombreCompleto,
+                                                            style: const TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.black87,
+                                                            ),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 16),
+                                                // Chips de información en fila separada
+                                                SingleChildScrollView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  child: Row(
+                                                    children: [
+                                                      _buildEnhancedInfoChip(Icons.badge, 'DNI: ${_ninoSeleccionado!.dniNino}', Colors.blue),
+                                                      const SizedBox(width: 8),
+                                                      _buildEnhancedInfoChip(Icons.cake, '${_ninoSeleccionado!.edad} años', Colors.orange),
+                                                      const SizedBox(width: 8),
+                                                      _buildEnhancedInfoChip(Icons.wc, _ninoSeleccionado!.sexo, _ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink),
+                                                      const SizedBox(width: 8),
+                                                      _buildEnhancedInfoChip(Icons.location_on, _ninoSeleccionado!.residencia, Colors.green),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [Colors.blue[50]!, Colors.blue[100]!.withOpacity(0.3)],
+                                                begin: Alignment.centerLeft,
+                                                end: Alignment.centerRight,
+                                              ),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.blue[200]!, width: 1),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.blue.withOpacity(0.1),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blue[500],
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(Icons.info, color: Colors.white, size: 16),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Los datos de este paciente se han cargado automáticamente',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.blue[700],
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
                         // Datos antropométricos
                         _buildSectionCard(
                           title: 'Datos del Paciente',
@@ -200,12 +702,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: _numberField(
+                                    child: _readOnlyField(
                                       label: 'Edad (meses)',
-                                      initial: _edadMeses.toString(),
-                                      onSaved: (v) => _edadMeses = int.tryParse(v ?? '') ?? _edadMeses,
-                                      min: 0,
-                                      max: 180,
+                                      value: _edadMeses.toString(),
                                       icon: Icons.calendar_today,
                                     ),
                                   ),
@@ -225,38 +724,45 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: _numberField(
+                                    child: _readOnlyField(
                                       label: 'Peso (kg)',
-                                      initial: _peso.toStringAsFixed(1),
-                                      onSaved: (v) => _peso = double.tryParse(v ?? '') ?? _peso,
-                                      min: 3,
-                                      max: 80,
+                                      value: _peso.toStringAsFixed(1),
                                       icon: Icons.monitor_weight,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _numberField(
+                                    child: _readOnlyField(
                                       label: 'Talla (m)',
-                                      initial: _talla.toStringAsFixed(2),
-                                      onSaved: (v) => _talla = double.tryParse(v ?? '') ?? _talla,
-                                      min: 0.5,
-                                      max: 2.0,
-                                      step: 0.01,
+                                      value: _talla.toStringAsFixed(2),
                                       icon: Icons.height,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              _numberField(
-                                label: 'Hemoglobina (g/dL) - Opcional',
-                                initial: _hemoglobina?.toStringAsFixed(1) ?? '',
-                                onSaved: (v) => _hemoglobina = (v?.isEmpty ?? true) ? null : double.tryParse(v!),
-                                min: 5,
-                                max: 18,
-                                step: 0.1,
-                                icon: Icons.water_drop,
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.blue[200]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info, color: Colors.blue[600], size: 20),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Edad calculada automáticamente: ${(_edadMeses / 12).toStringAsFixed(1)} años ($_edadMeses meses). Los datos de peso y talla se toman del registro del niño seleccionado.',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.blue[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -401,47 +907,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     );
   }
 
-  Widget _numberField({
-    required String label,
-    required String initial,
-    required void Function(String?) onSaved,
-    required num min,
-    required num max,
-    double step = 1,
-    IconData? icon,
-  }) {
-    return TextFormField(
-      initialValue: initial,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: icon != null ? Icon(icon, color: Colors.grey[600]) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red[400]!, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      validator: (v) {
-        if (v == null || v.isEmpty) return null;
-        final x = double.tryParse(v);
-        if (x == null) return 'Número inválido';
-        if (x < min || x > max) return 'Fuera de rango ($min - $max)';
-        return null;
-      },
-      onSaved: onSaved,
-    );
-  }
-
   Widget _dropdown({
     required String label,
     required String value,
@@ -486,9 +951,24 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     required MaterialColor color,
     required Widget child,
   }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, color[25] ?? color[50]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color[200]!, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -497,20 +977,34 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color[50],
-                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [color[400]!, color[600]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: color[600], size: 20),
+                  child: Icon(icon, color: Colors.white, size: 22),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: color[800],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: color[800],
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
@@ -739,6 +1233,84 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _readOnlyField({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey[50],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedInfoChip(IconData icon, String text, MaterialColor color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color[50],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color[200]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color[600]),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 10,
+              color: color[700],
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

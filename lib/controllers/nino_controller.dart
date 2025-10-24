@@ -34,6 +34,28 @@ class NinoController extends ChangeNotifier {
     }
   }
 
+  // Cargar niños por usuario
+  Future<void> cargarNinosPorUsuario(String usuarioId) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      print('DEBUG Controller: Cargando niños para usuario: $usuarioId');
+      _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId);
+      _ninosFiltrados = List.from(_ninos);
+      print('DEBUG Controller: Niños cargados: ${_ninos.length}');
+      for (var nino in _ninos) {
+        print('DEBUG Controller: - ${nino.nombres} ${nino.apellidos} (Usuario: ${nino.usuarioId})');
+      }
+      notifyListeners();
+    } catch (e) {
+      print('DEBUG Controller: Error cargando niños: $e');
+      _setError('Error al cargar niños del usuario: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Crear nuevo niño
   Future<bool> crearNino({
     required String nombres,
@@ -46,15 +68,24 @@ class NinoController extends ChangeNotifier {
     required String dniPadre,
     required double peso,
     required double talla,
+    required String usuarioId,
+    String? anemia,
+    String? alimentosHierro,
+    String? fatiga,
+    String? alimentacionBalanceada,
+    String? palidez,
+    String? disminucionRendimiento,
+    String? evaluacionAnemia,
   }) async {
     try {
       _setLoading(true);
       _clearError();
 
-      // Verificar si ya existe el DNI
-      final existe = await NinoService.existeDNI(dniNino);
+      // Verificar si ya existe el DNI para este usuario
+      print('DEBUG: Verificando DNI $dniNino para usuario $usuarioId');
+      final existe = await NinoService.existeDNIParaUsuario(dniNino, usuarioId);
       if (existe) {
-        _setError('Ya existe un niño registrado con este DNI');
+        _setError('Ya tienes un niño registrado con este DNI');
         return false;
       }
 
@@ -78,10 +109,20 @@ class NinoController extends ChangeNotifier {
         imc: imc,
         clasificacionIMC: clasificacion,
         fechaRegistro: DateTime.now(),
+        usuarioId: usuarioId,
+        anemia: anemia,
+        alimentosHierro: alimentosHierro,
+        fatiga: fatiga,
+        alimentacionBalanceada: alimentacionBalanceada,
+        palidez: palidez,
+        disminucionRendimiento: disminucionRendimiento,
+        evaluacionAnemia: evaluacionAnemia,
       );
 
+      print('DEBUG: Creando niño ${nombres} ${apellidos} para usuario $usuarioId');
       await NinoService.crearNino(nuevoNino);
-      await cargarNinos(); // Recargar la lista
+      print('DEBUG: Niño creado exitosamente, recargando lista...');
+      await cargarNinosPorUsuario(usuarioId); // Recargar solo los niños del usuario
       return true;
     } catch (e) {
       _setError('Error al crear registro: ${e.toString()}');
@@ -92,7 +133,7 @@ class NinoController extends ChangeNotifier {
   }
 
   // Actualizar niño
-  Future<bool> actualizarNino(NinoModel nino) async {
+  Future<bool> actualizarNino(NinoModel nino, {String? usuarioId}) async {
     try {
       _setLoading(true);
       _clearError();
@@ -108,7 +149,14 @@ class NinoController extends ChangeNotifier {
       );
 
       await NinoService.actualizarNino(ninoActualizado);
-      await cargarNinos(); // Recargar la lista
+      
+      // Recargar según el contexto
+      if (usuarioId != null) {
+        await cargarNinosPorUsuario(usuarioId);
+      } else {
+        await cargarNinos();
+      }
+      
       return true;
     } catch (e) {
       _setError('Error al actualizar registro: ${e.toString()}');
@@ -119,13 +167,20 @@ class NinoController extends ChangeNotifier {
   }
 
   // Eliminar niño
-  Future<bool> eliminarNino(String id) async {
+  Future<bool> eliminarNino(String id, {String? usuarioId}) async {
     try {
       _setLoading(true);
       _clearError();
 
       await NinoService.eliminarNino(id);
-      await cargarNinos(); // Recargar la lista
+      
+      // Recargar según el contexto
+      if (usuarioId != null) {
+        await cargarNinosPorUsuario(usuarioId);
+      } else {
+        await cargarNinos();
+      }
+      
       return true;
     } catch (e) {
       _setError('Error al eliminar registro: ${e.toString()}');
@@ -198,6 +253,21 @@ class NinoController extends ChangeNotifier {
     }
   }
 
+  // Cargar estadísticas por usuario
+  Future<void> cargarEstadisticasUsuario(String usuarioId) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      _estadisticas = await NinoService.obtenerEstadisticasUsuario(usuarioId);
+      notifyListeners();
+    } catch (e) {
+      _setError('Error al cargar estadísticas del usuario: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Seleccionar niño
   void seleccionarNino(NinoModel nino) {
     _ninoSeleccionado = nino;
@@ -244,5 +314,24 @@ class NinoController extends ChangeNotifier {
   void limpiarFiltros() {
     _ninosFiltrados = List.from(_ninos);
     notifyListeners();
+  }
+
+  // DEBUG: Método para verificar todos los datos en Firestore
+  Future<void> debugTodosLosDatos() async {
+    try {
+      print('DEBUG Controller: Iniciando debug de todos los datos...');
+      final todosLosNinos = await NinoService.obtenerTodosLosNinos();
+      print('DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
+      
+      for (var nino in todosLosNinos) {
+        print('DEBUG Controller: - ${nino.nombres} ${nino.apellidos}');
+        print('  ID: ${nino.id}');
+        print('  Usuario ID: ${nino.usuarioId}');
+        print('  Activo: ${nino.activo}');
+        print('  ---');
+      }
+    } catch (e) {
+      print('DEBUG Controller: Error en debug: $e');
+    }
   }
 }

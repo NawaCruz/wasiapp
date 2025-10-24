@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 // import 'package:image_picker/image_picker.dart';
 // import 'dart:io';
 import 'anemia_diagnostico_view.dart';
+import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
 import 'login_view.dart';
@@ -22,10 +24,33 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    // Cargar datos iniciales
+    // Cargar datos iniciales por usuario
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NinoController>(context, listen: false).cargarNinos();
-      Provider.of<NinoController>(context, listen: false).cargarEstadisticas();
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final ninoController = Provider.of<NinoController>(context, listen: false);
+      
+      print('DEBUG HomeView: === INICIO DEBUG ===');
+      print('DEBUG HomeView: Usuario actual = ${authController.usuarioActual}');
+      print('DEBUG HomeView: Usuario ID = ${authController.usuarioActual?.id}');
+      print('DEBUG HomeView: Usuario nombre = ${authController.usuarioActual?.nombre}');
+      print('DEBUG HomeView: IsLoggedIn = ${authController.isLoggedIn}');
+      
+      final usuarioId = authController.usuarioActual?.id;
+      
+      if (usuarioId != null) {
+        print('DEBUG HomeView: Cargando niños para usuario $usuarioId');
+        ninoController.cargarNinosPorUsuario(usuarioId).then((_) {
+          print('DEBUG HomeView: Niños cargados: ${ninoController.ninos.length}');
+        });
+        ninoController.cargarEstadisticasUsuario(usuarioId).then((_) {
+          print('DEBUG HomeView: Estadísticas cargadas: ${ninoController.estadisticas}');
+        });
+      } else {
+        print('DEBUG HomeView: Usuario ID es null, no se pueden cargar niños');
+        print('DEBUG HomeView: Redirigiendo al login...');
+        // Si no hay usuario, redirigir al login
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
   }
 
@@ -46,6 +71,46 @@ class _HomeViewState extends State<HomeView> {
         foregroundColor: Colors.white,
         actions: _selectedIndex == 0
             ? [
+                IconButton(
+                  onPressed: () async {
+                    final authController = Provider.of<AuthController>(context, listen: false);
+                    final ninoController = Provider.of<NinoController>(context, listen: false);
+                    final usuarioId = authController.usuarioActual?.id;
+                    
+                    if (usuarioId != null) {
+                      await ninoController.cargarNinosPorUsuario(usuarioId);
+                      await ninoController.cargarEstadisticasUsuario(usuarioId);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Datos actualizados'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Actualizar datos',
+                ),
+                IconButton(
+                  onPressed: () async {
+                    final ninoController = Provider.of<NinoController>(context, listen: false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Ejecutando debug completo...'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                    await ninoController.debugTodosLosDatos();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Debug completado - revisa la consola y la info en pantalla'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bug_report, color: Colors.red),
+                  tooltip: 'DEBUG: Ver todos los datos',
+                ),
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'logout') {
@@ -406,6 +471,43 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
             const SizedBox(height: 16),
+            
+            // DEBUG: Información de estado
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'DEBUG INFO:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[700],
+                    ),
+                  ),
+                  Text(
+                    'Total niños: ${ninoController.ninos.length}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                  Text(
+                    'Loading: ${ninoController.isLoading}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                  Text(
+                    'Error: ${ninoController.errorMessage ?? 'No hay errores'}',
+                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
             if (ninos.isEmpty)
               const Center(
                 child: Padding(
@@ -452,11 +554,13 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Color _getIMCColor(String clasificacion) {
+  Color _getIMCColor(String? clasificacion) {
+    if (clasificacion == null) return Colors.grey.shade100;
     switch (clasificacion.toLowerCase()) {
       case 'bajo peso':
         return Colors.blue.shade100;
       case 'peso normal':
+      case 'normal':
         return Colors.green.shade100;
       case 'sobrepeso':
         return Colors.orange.shade100;
@@ -464,6 +568,23 @@ class _HomeViewState extends State<HomeView> {
         return Colors.red.shade100;
       default:
         return Colors.grey.shade100;
+    }
+  }
+
+  Color _getIMCTextColor(String? clasificacion) {
+    if (clasificacion == null) return Colors.grey;
+    switch (clasificacion.toLowerCase()) {
+      case 'bajo peso':
+        return Colors.orange;
+      case 'peso normal':
+      case 'normal':
+        return Colors.green;
+      case 'sobrepeso':
+        return Colors.orange;
+      case 'obesidad':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -494,12 +615,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _navigateToRegisterChild() {
-    // TODO: Implementar navegación al formulario de registro
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funcionalidad en desarrollo'),
-      ),
-    );
+    Navigator.of(context).pushNamed('/registro_flow');
   }
 
   void _navigateToChildrenList() {
@@ -512,12 +628,208 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _viewChildDetails(dynamic nino) {
-    // TODO: Implementar vista de detalles del niño
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Ver detalles de ${nino.nombreCompleto}'),
+    showDialog(
+      context: context,
+      builder: (context) => _buildChildDetailsDialog(nino),
+    );
+  }
+
+  Widget _buildChildDetailsDialog(dynamic nino) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blue.shade100,
+                  child: Icon(
+                    nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nino.nombreCompleto,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'DNI: ${nino.dniNino}',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const Divider(height: 20),
+            
+            // Información básica
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailSection('Información Personal', [
+                      _buildDetailRow('Edad', '${nino.edad} años'),
+                      _buildDetailRow('Sexo', nino.sexo),
+                      _buildDetailRow('Fecha de nacimiento', DateFormat('dd/MM/yyyy').format(nino.fechaNacimiento)),
+                      _buildDetailRow('Residencia', nino.residencia),
+                    ]),
+                    
+                    _buildDetailSection('Tutor/Responsable', [
+                      _buildDetailRow('Nombre del tutor', nino.nombreTutor),
+                      _buildDetailRow('DNI del tutor', nino.dniPadre),
+                    ]),
+                    
+                    _buildDetailSection('Medidas Antropométricas', [
+                      _buildDetailRow('Peso', '${nino.peso} kg'),
+                      _buildDetailRow('Talla', '${nino.talla} cm'),
+                      _buildDetailRow('IMC', nino.imc?.toStringAsFixed(2) ?? 'N/A'),
+                      _buildDetailRow(
+                        'Clasificación IMC', 
+                        nino.clasificacionIMC ?? 'N/A',
+                        color: _getIMCTextColor(nino.clasificacionIMC),
+                      ),
+                    ]),
+                    
+                    if (nino.anemia != null || nino.fatiga != null) ...[
+                      _buildDetailSection('Cuestionario de Salud', [
+                        if (nino.anemia != null) _buildDetailRow('Anemia previa', nino.anemia!),
+                        if (nino.alimentosHierro != null) _buildDetailRow('Alimentos con hierro', nino.alimentosHierro!),
+                        if (nino.fatiga != null) _buildDetailRow('Fatiga frecuente', nino.fatiga!),
+                        if (nino.alimentacionBalanceada != null) _buildDetailRow('Alimentación balanceada', nino.alimentacionBalanceada!),
+                        if (nino.palidez != null) _buildDetailRow('Palidez', nino.palidez!),
+                        if (nino.disminucionRendimiento != null) _buildDetailRow('Disminución del rendimiento', nino.disminucionRendimiento!),
+                      ]),
+                    ],
+                    
+                    if (nino.evaluacionAnemia != null) ...[
+                      _buildDetailSection('Evaluación de Anemia', [
+                        _buildDetailRow(
+                          'Riesgo', 
+                          nino.evaluacionAnemia!,
+                          color: _getAnemiaRiskColor(nino.evaluacionAnemia!),
+                        ),
+                      ]),
+                    ],
+                    
+                    _buildDetailSection('Registro', [
+                      _buildDetailRow('Fecha de registro', DateFormat('dd/MM/yyyy HH:mm').format(nino.fechaRegistro)),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Botones de acción
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegistroNinoFlow(ninoAEditar: nino),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.edit, color: Colors.blue.shade700),
+                  label: Text(
+                    'Editar',
+                    style: TextStyle(color: Colors.blue.shade700),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cerrar'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildDetailSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1976D2),
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...children,
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: color ?? Colors.black87,
+                fontWeight: color != null ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  Color _getAnemiaRiskColor(String riesgo) {
+    if (riesgo.contains('Alta')) return Colors.red;
+    if (riesgo.contains('moderado')) return Colors.orange;
+    return Colors.green;
   }
 
   // Flujo mock anterior de Anemia eliminado (sustituido por AnemiaDiagnosticoView)

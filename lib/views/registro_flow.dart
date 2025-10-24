@@ -1,10 +1,18 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../controllers/nino_controller.dart';
+import '../controllers/auth_controller.dart';
+import '../models/nino_model.dart';
 
 class RegistroNinoFlow extends StatefulWidget {
-  const RegistroNinoFlow({super.key});
+  final NinoModel? ninoAEditar; // Parámetro opcional para edición
+  
+  const RegistroNinoFlow({
+    super.key,
+    this.ninoAEditar,
+  });
 
   @override
   State<RegistroNinoFlow> createState() => _RegistroNinoFlowState();
@@ -48,6 +56,41 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   final List<String> _opcionesSexo = ['Seleccionar', 'Masculino', 'Femenino'];
   final List<String> _opcionesSiNo = ['Seleccionar', 'Sí', 'No'];
   final List<String> _opcionesResidencia = ['Huancayo', 'El Tambo', 'Chilca', 'Pilcomayo', 'Sicaya', 'Otra'];
+
+  @override
+  void initState() {
+    super.initState();
+    // Si se está editando un niño, precargar los datos
+    if (widget.ninoAEditar != null) {
+      _precargarDatos(widget.ninoAEditar!);
+    }
+  }
+
+  void _precargarDatos(NinoModel nino) {
+    _nombresController.text = nino.nombres;
+    _apellidosController.text = nino.apellidos;
+    _dniNinoController.text = nino.dniNino;
+    _nombreTutorController.text = nino.nombreTutor;
+    _dniPadreController.text = nino.dniPadre;
+    _pesoController.text = nino.peso.toString();
+    _tallaController.text = nino.talla.toString();
+    
+    _fechaNacimiento = nino.fechaNacimiento;
+    _sexoSeleccionado = nino.sexo;
+    _residenciaSeleccionada = nino.residencia;
+    
+    // Datos del cuestionario de salud
+    _anemia = nino.anemia;
+    _alimentosHierro = nino.alimentosHierro;
+    _fatiga = nino.fatiga;
+    _alimentacionBalanceada = nino.alimentacionBalanceada;
+    _palidez = nino.palidez;
+    _disminucionRendimiento = nino.disminucionRendimiento;
+    
+    // Medidas calculadas
+    _imcCalculado = nino.imc;
+    _clasificacionIMC = nino.clasificacionIMC;
+  }
 
 
   @override
@@ -196,15 +239,18 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   }
 
   String _getTitleByStep() {
+    final isEditing = widget.ninoAEditar != null;
+    final prefix = isEditing ? 'Editar: ' : '';
+    
     switch (_currentStep) {
       case 0:
-        return 'Datos Básicos';
+        return '${prefix}Datos Básicos';
       case 1:
-        return 'Cuestionario de Salud';
+        return '${prefix}Cuestionario de Salud';
       case 2:
-        return 'Medidas Antropométricas';
+        return '${prefix}Medidas Antropométricas';
       default:
-        return 'Registro de Niño';
+        return isEditing ? 'Editar Niño' : 'Registro de Niño';
     }
   }
 
@@ -1083,7 +1129,9 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                 size: 20,
                               ),
                         label: Text(
-                          _isLoading ? 'Registrando...' : 'Registrar Niño',
+                          _isLoading 
+                            ? (widget.ninoAEditar != null ? 'Actualizando...' : 'Registrando...') 
+                            : (widget.ninoAEditar != null ? 'Actualizar Datos' : 'Registrar Niño'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -1434,28 +1482,70 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
         throw Exception('Los valores numéricos deben ser mayores a cero.');
       }
 
-      await FirebaseFirestore.instance.collection('ninos').add({
-        'nombres': _nombresController.text.trim(),
-        'apellidos': _apellidosController.text.trim(),
-        'dniNino': _dniNinoController.text.trim(),
-        'fechaNacimiento': _fechaNacimiento,
-        'sexo': _sexoSeleccionado,
-        'nombreTutor': _nombreTutorController.text.trim(),
-        'dniPadre': _dniPadreController.text.trim(),
-        'anemia': _anemia,
-        'alimentosHierro': _alimentosHierro,
-        'fatiga': _fatiga,
-        'alimentacionBalanceada': _alimentacionBalanceada,
-        'palidez': _palidez, // Nuevo campo
-        'disminucionRendimiento': _disminucionRendimiento, // Nuevo campo
-        'residenciaSeleccionada': _residenciaSeleccionada,
-        'peso': peso,
-        'talla': talla,
-        'imc': _imcCalculado,
-        'clasificacionIMC': _clasificacionIMC,
-        'evaluacionAnemia': _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!),
-        'fechaRegistro': FieldValue.serverTimestamp(),
-      });
+      // Obtener controladores
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final ninoController = Provider.of<NinoController>(context, listen: false);
+      
+      final usuarioId = authController.usuarioActual?.id;
+      if (usuarioId == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      // Evaluar riesgo de anemia
+      final evaluacionAnemia = _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!);
+
+      bool exito;
+      
+      if (widget.ninoAEditar != null) {
+        // Actualizar niño existente
+        final ninoActualizado = widget.ninoAEditar!.copyWith(
+          nombres: _nombresController.text.trim(),
+          apellidos: _apellidosController.text.trim(),
+          dniNino: _dniNinoController.text.trim(),
+          fechaNacimiento: _fechaNacimiento!,
+          sexo: _sexoSeleccionado!,
+          residencia: _residenciaSeleccionada!,
+          nombreTutor: _nombreTutorController.text.trim(),
+          dniPadre: _dniPadreController.text.trim(),
+          peso: peso,
+          talla: talla,
+          anemia: _anemia,
+          alimentosHierro: _alimentosHierro,
+          fatiga: _fatiga,
+          alimentacionBalanceada: _alimentacionBalanceada,
+          palidez: _palidez,
+          disminucionRendimiento: _disminucionRendimiento,
+          evaluacionAnemia: evaluacionAnemia,
+        );
+        
+        exito = await ninoController.actualizarNino(ninoActualizado, usuarioId: usuarioId);
+      } else {
+        // Crear niño nuevo
+        exito = await ninoController.crearNino(
+          nombres: _nombresController.text.trim(),
+          apellidos: _apellidosController.text.trim(),
+          dniNino: _dniNinoController.text.trim(),
+          fechaNacimiento: _fechaNacimiento!,
+          sexo: _sexoSeleccionado!,
+          residencia: _residenciaSeleccionada!,
+          nombreTutor: _nombreTutorController.text.trim(),
+          dniPadre: _dniPadreController.text.trim(),
+          peso: peso,
+          talla: talla,
+          usuarioId: usuarioId,
+          anemia: _anemia,
+          alimentosHierro: _alimentosHierro,
+          fatiga: _fatiga,
+          alimentacionBalanceada: _alimentacionBalanceada,
+          palidez: _palidez,
+          disminucionRendimiento: _disminucionRendimiento,
+          evaluacionAnemia: evaluacionAnemia,
+        );
+      }
+
+      if (!exito) {
+        throw Exception(ninoController.errorMessage ?? 'Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'} el niño');
+      }
 
       if (mounted) {
         // Mostrar pantalla de éxito
@@ -1469,7 +1559,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Error al registrar: $e')),
+                Expanded(child: Text('Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'}: $e')),
               ],
             ),
             backgroundColor: const Color(0xFFE53935),
@@ -1526,7 +1616,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  '¡Registro Exitoso!',
+                  '¡Operación Exitosa!',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -1536,7 +1626,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'El niño ${_nombresController.text.trim()} ${_apellidosController.text.trim()} ha sido registrado correctamente.',
+                  'Los datos de ${_nombresController.text.trim()} ${_apellidosController.text.trim()} han sido ${widget.ninoAEditar != null ? 'actualizados' : 'registrados'} correctamente.',
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,
@@ -1547,9 +1637,21 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Cerrar diálogo
-                      Navigator.of(context).pop(); // Cerrar pantalla de registro
+                    onPressed: () async {
+                      // Recargar datos en el home
+                      final authController = Provider.of<AuthController>(context, listen: false);
+                      final ninoController = Provider.of<NinoController>(context, listen: false);
+                      final usuarioId = authController.usuarioActual?.id;
+                      
+                      if (usuarioId != null) {
+                        await ninoController.cargarNinosPorUsuario(usuarioId);
+                        await ninoController.cargarEstadisticasUsuario(usuarioId);
+                      }
+                      
+                      if (context.mounted) {
+                        Navigator.of(context).pop(); // Cerrar diálogo
+                        Navigator.of(context).pop(); // Cerrar pantalla de registro
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
