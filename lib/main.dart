@@ -14,19 +14,21 @@ import 'firebase_options.dart';
 import 'core/constants/app_constants.dart';
 import 'core/routes/rutas_app.dart';
 
+// ML Provider - COMENTADO TEMPORALMENTE HASTA QUE LO CREES
+import 'providers/ml_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Registramos los controllers globalmente en la raíz del app
-  // Usar MultiProvider para que HomeView (y otras rutas) puedan acceder a NinoController
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => NinoController()),
+        ChangeNotifierProvider(create: (_) => MLProvider()),
       ],
       child: const AplicacionWasi(),
     ),

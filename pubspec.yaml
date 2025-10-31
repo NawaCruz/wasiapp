@@ -1,11 +1,10 @@
-
-name: flutter_application_1
+name: wasiapp
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.7.0
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,8 +12,10 @@ dependencies:
   provider: ^6.1.2
   image_picker: ^1.1.1
   image: ^4.1.7
-  firebase_core: ^3.13.0
-  cloud_firestore: ^5.6.7
+  firebase_core: ^3.15.0
+  cloud_firestore: ^5.6.12
+  firebase_ml_model_downloader: ^0.3.0
+  tflite_flutter: ^0.10.4
   intl: ^0.19.0
   shared_preferences: ^2.3.2
 
@@ -25,3 +26,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/labels.txt
