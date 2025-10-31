@@ -1,3 +1,4 @@
+
 name: flutter_application_1
 description: "A new Flutter project."
 publish_to: 'none'
@@ -15,6 +16,7 @@ dependencies:
   firebase_core: ^3.13.0
   cloud_firestore: ^5.6.7
   intl: ^0.19.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

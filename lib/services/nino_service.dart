@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/nino_model.dart';
 
 class NinoService {
@@ -54,7 +55,7 @@ class NinoService {
   // Obtener niños activos por usuario
   static Future<List<NinoModel>> obtenerNinosPorUsuario(String usuarioId) async {
     try {
-      print('DEBUG Service: Consultando niños para usuario: $usuarioId');
+      debugPrint('DEBUG Service: Consultando niños para usuario: $usuarioId');
       
       // Simplificamos la consulta para evitar problemas de índices
       final querySnapshot = await _firestore
@@ -62,12 +63,12 @@ class NinoService {
           .where('usuarioId', isEqualTo: usuarioId)
           .get();
 
-      print('DEBUG Service: Documentos encontrados: ${querySnapshot.docs.length}');
+      debugPrint('DEBUG Service: Documentos encontrados: ${querySnapshot.docs.length}');
       
       final ninos = querySnapshot.docs
           .map((doc) {
             final data = doc.data();
-            print('DEBUG Service: Documento ${doc.id}: usuarioId=${data['usuarioId']}, activo=${data['activo']}');
+            debugPrint('DEBUG Service: Documento ${doc.id}: usuarioId=${data['usuarioId']}, activo=${data['activo']}');
             return NinoModel.fromMap(data, doc.id);
           })
           .where((nino) => nino.activo) // Filtrar activos en código
@@ -76,10 +77,10 @@ class NinoService {
       // Ordenar por fecha en código
       ninos.sort((a, b) => b.fechaRegistro.compareTo(a.fechaRegistro));
 
-      print('DEBUG Service: Niños filtrados: ${ninos.length}');
+      debugPrint('DEBUG Service: Niños filtrados: ${ninos.length}');
       return ninos;
     } catch (e) {
-      print('DEBUG Service: Error al obtener niños del usuario: $e');
+      debugPrint('DEBUG Service: Error al obtener niños del usuario: $e');
       throw Exception('Error al obtener niños del usuario: $e');
     }
   }
@@ -238,20 +239,20 @@ class NinoService {
           .collection(_collection)
           .get();
 
-      print('DEBUG Service: Total documentos en Firestore: ${querySnapshot.docs.length}');
+      debugPrint('DEBUG Service: Total documentos en Firestore: ${querySnapshot.docs.length}');
       
       final ninos = querySnapshot.docs
           .map((doc) {
             final data = doc.data();
-            print('DEBUG Service: Documento ${doc.id}: $data');
+            debugPrint('DEBUG Service: Documento ${doc.id}: $data');
             return NinoModel.fromMap(data, doc.id);
           })
           .toList();
 
-      print('DEBUG Service: Niños parseados: ${ninos.length}');
+      debugPrint('DEBUG Service: Niños parseados: ${ninos.length}');
       return ninos;
     } catch (e) {
-      print('DEBUG Service: Error obteniendo todos los niños: $e');
+      debugPrint('DEBUG Service: Error obteniendo todos los niños: $e');
       throw Exception('Error al obtener todos los niños: $e');
     }
   }
