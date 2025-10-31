@@ -4,11 +4,10 @@ import 'package:provider/provider.dart';
 
 // Controladores
 import 'controllers/auth_controller.dart';
-import 'controllers/nino_controller.dart'; // <-- agregado
+import 'controllers/nino_controller.dart';
 
 // Vistas
-import 'views/login_view.dart';
-import 'views/home_view.dart';
+import 'views/splash_view.dart';
 
 // Configuración
 import 'firebase_options.dart';
@@ -27,7 +26,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => NinoController()), // <-- agregado
+        ChangeNotifierProvider(create: (_) => NinoController()),
       ],
       child: const AplicacionWasi(),
     ),
@@ -69,24 +68,14 @@ class AplicacionWasi extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+            borderRadius: BorderRadius.circular(12)),
           filled: true,
           fillColor: Colors.grey[50],
         ),
       ),
 
-      // 🔹 Pantalla inicial: Login o Home según sesión
-      home: Consumer<AuthController>(
-        builder: (context, auth, _) {
-          // Si hay sesión, ir al Home
-          if (auth.isLoggedIn) {
-            return const HomeView();
-          }
-          // Si no hay sesión, mostrar Login
-          return const LoginView();
-        },
-      ),
+      // 🔹 Pantalla inicial: Splash screen que maneja la navegación automáticamente
+      home: const SplashView(),
 
       // Si tienes rutas definidas, puedes mantenerlas
       onGenerateRoute: RutasApp.alGenerarRuta,

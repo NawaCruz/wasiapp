@@ -40,16 +40,16 @@ class NinoController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      print('DEBUG Controller: Cargando niños para usuario: $usuarioId');
+      debugPrint('DEBUG Controller: Cargando niños para usuario: $usuarioId');
       _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId);
       _ninosFiltrados = List.from(_ninos);
-      print('DEBUG Controller: Niños cargados: ${_ninos.length}');
+      debugPrint('DEBUG Controller: Niños cargados: ${_ninos.length}');
       for (var nino in _ninos) {
-        print('DEBUG Controller: - ${nino.nombres} ${nino.apellidos} (Usuario: ${nino.usuarioId})');
+        debugPrint('DEBUG Controller: - ${nino.nombres} ${nino.apellidos} (Usuario: ${nino.usuarioId})');
       }
       notifyListeners();
     } catch (e) {
-      print('DEBUG Controller: Error cargando niños: $e');
+      debugPrint('DEBUG Controller: Error cargando niños: $e');
       _setError('Error al cargar niños del usuario: ${e.toString()}');
     } finally {
       _setLoading(false);
@@ -82,7 +82,7 @@ class NinoController extends ChangeNotifier {
       _clearError();
 
       // Verificar si ya existe el DNI para este usuario
-      print('DEBUG: Verificando DNI $dniNino para usuario $usuarioId');
+      debugPrint('DEBUG: Verificando DNI $dniNino para usuario $usuarioId');
       final existe = await NinoService.existeDNIParaUsuario(dniNino, usuarioId);
       if (existe) {
         _setError('Ya tienes un niño registrado con este DNI');
@@ -119,9 +119,9 @@ class NinoController extends ChangeNotifier {
         evaluacionAnemia: evaluacionAnemia,
       );
 
-      print('DEBUG: Creando niño ${nombres} ${apellidos} para usuario $usuarioId');
+      debugPrint('DEBUG: Creando niño $nombres $apellidos para usuario $usuarioId');
       await NinoService.crearNino(nuevoNino);
-      print('DEBUG: Niño creado exitosamente, recargando lista...');
+      debugPrint('DEBUG: Niño creado exitosamente, recargando lista...');
       await cargarNinosPorUsuario(usuarioId); // Recargar solo los niños del usuario
       return true;
     } catch (e) {
@@ -319,19 +319,19 @@ class NinoController extends ChangeNotifier {
   // DEBUG: Método para verificar todos los datos en Firestore
   Future<void> debugTodosLosDatos() async {
     try {
-      print('DEBUG Controller: Iniciando debug de todos los datos...');
+      debugPrint('DEBUG Controller: Iniciando debug de todos los datos...');
       final todosLosNinos = await NinoService.obtenerTodosLosNinos();
-      print('DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
+      debugPrint('DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
       
       for (var nino in todosLosNinos) {
-        print('DEBUG Controller: - ${nino.nombres} ${nino.apellidos}');
-        print('  ID: ${nino.id}');
-        print('  Usuario ID: ${nino.usuarioId}');
-        print('  Activo: ${nino.activo}');
-        print('  ---');
+        debugPrint('DEBUG Controller: - ${nino.nombres} ${nino.apellidos}');
+        debugPrint('  ID: ${nino.id}');
+        debugPrint('  Usuario ID: ${nino.usuarioId}');
+        debugPrint('  Activo: ${nino.activo}');
+        debugPrint('  ---');
       }
     } catch (e) {
-      print('DEBUG Controller: Error en debug: $e');
+      debugPrint('DEBUG Controller: Error en debug: $e');
     }
   }
 }

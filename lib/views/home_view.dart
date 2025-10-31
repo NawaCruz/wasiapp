@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'dart:io';
 import 'anemia_diagnostico_view.dart';
 import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
@@ -17,50 +15,78 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   int _selectedIndex = 0;
-  // Campos de la versión mock de Anemia eliminados
+  late TabController _tabController;
+  bool _isLoadingRefresh = false;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    
     // Cargar datos iniciales por usuario
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authController = Provider.of<AuthController>(context, listen: false);
       final ninoController = Provider.of<NinoController>(context, listen: false);
       
-      print('DEBUG HomeView: === INICIO DEBUG ===');
-      print('DEBUG HomeView: Usuario actual = ${authController.usuarioActual}');
-      print('DEBUG HomeView: Usuario ID = ${authController.usuarioActual?.id}');
-      print('DEBUG HomeView: Usuario nombre = ${authController.usuarioActual?.nombre}');
-      print('DEBUG HomeView: IsLoggedIn = ${authController.isLoggedIn}');
-      
       final usuarioId = authController.usuarioActual?.id;
       
       if (usuarioId != null) {
-        print('DEBUG HomeView: Cargando niños para usuario $usuarioId');
-        ninoController.cargarNinosPorUsuario(usuarioId).then((_) {
-          print('DEBUG HomeView: Niños cargados: ${ninoController.ninos.length}');
-        });
-        ninoController.cargarEstadisticasUsuario(usuarioId).then((_) {
-          print('DEBUG HomeView: Estadísticas cargadas: ${ninoController.estadisticas}');
-        });
+        ninoController.cargarNinosPorUsuario(usuarioId);
+        ninoController.cargarEstadisticasUsuario(usuarioId);
       } else {
-        print('DEBUG HomeView: Usuario ID es null, no se pueden cargar niños');
-        print('DEBUG HomeView: Redirigiendo al login...');
-        // Si no hay usuario, redirigir al login
         Navigator.pushReplacementNamed(context, '/login');
       }
     });
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cargarDatos() async {
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final ninoController = Provider.of<NinoController>(context, listen: false);
+    final usuarioId = authController.usuarioActual?.id;
+    
+    if (usuarioId != null) {
+      await ninoController.cargarNinosPorUsuario(usuarioId);
+      await ninoController.cargarEstadisticasUsuario(usuarioId);
+    }
+  }
+
+  Future<void> _refrescarDatos() async {
+    setState(() => _isLoadingRefresh = true);
+    await _cargarDatos();
+    setState(() => _isLoadingRefresh = false);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Datos actualizados correctamente'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final titles = [
-      'WASI App - Inicio',
+      'WasiApp',
       'Plan Nutricional',
       'Evaluación',
-      'Anemia',
+      'Diagnóstico',
       'Perfil',
     ];
 
@@ -69,48 +95,24 @@ class _HomeViewState extends State<HomeView> {
         title: Text(titles[_selectedIndex]),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: _selectedIndex == 0
             ? [
                 IconButton(
-                  onPressed: () async {
-                    final authController = Provider.of<AuthController>(context, listen: false);
-                    final ninoController = Provider.of<NinoController>(context, listen: false);
-                    final usuarioId = authController.usuarioActual?.id;
-                    
-                    if (usuarioId != null) {
-                      await ninoController.cargarNinosPorUsuario(usuarioId);
-                      await ninoController.cargarEstadisticasUsuario(usuarioId);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Datos actualizados'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.refresh),
+                  onPressed: _isLoadingRefresh ? null : _refrescarDatos,
+                  icon: _isLoadingRefresh 
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
                   tooltip: 'Actualizar datos',
                 ),
-                IconButton(
-                  onPressed: () async {
-                    final ninoController = Provider.of<NinoController>(context, listen: false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Ejecutando debug completo...'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                    await ninoController.debugTodosLosDatos();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Debug completado - revisa la consola y la info en pantalla'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.bug_report, color: Colors.red),
-                  tooltip: 'DEBUG: Ver todos los datos',
-                ),
+                _buildHelpButton(),
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'logout') {
@@ -122,7 +124,7 @@ class _HomeViewState extends State<HomeView> {
                       value: 'logout',
                       child: Row(
                         children: [
-                          Icon(Icons.logout),
+                          Icon(Icons.logout, color: Colors.red),
                           SizedBox(width: 8),
                           Text('Cerrar Sesión'),
                         ],
@@ -137,22 +139,14 @@ class _HomeViewState extends State<HomeView> {
         child: IndexedStack(
           index: _selectedIndex,
           children: [
-            // 0: Inicio (mantengo la UI existente)
+            // 0: Inicio - Simplificado
             Consumer2<AuthController, NinoController>(
               builder: (context, authController, ninoController, child) {
-                if (ninoController.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: _buildHomeContent(authController, ninoController),
-                );
+                return _buildHomeContent(authController, ninoController);
               },
             ),
 
-            // 1: Plan Nutricional (placeholder)
+            // 1: Plan Nutricional
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -173,9 +167,8 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        // TODO: Navegar a pantalla de plan nutricional detallado
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Ir al plan nutricional (en desarrollo)')),
+                          const SnackBar(content: Text('Plan nutricional (en desarrollo)')),
                         );
                       },
                       child: const Text('Ver Plan'),
@@ -185,7 +178,7 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
 
-            // 2: Evaluación (navegar al flujo de registro/evaluación)
+            // 2: Evaluación
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -206,8 +199,6 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        // Navegar al flujo de evaluación / registro
-                        // Asegúrate de tener definida la ruta '/registro_flow' o reemplaza por la pantalla correspondiente
                         Navigator.of(context).pushNamed('/registro_flow');
                       },
                       child: const Text('Ir a Evaluación'),
@@ -217,43 +208,11 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
 
-            // 3: Anemia (nuevo diagnóstico RF-05)
+            // 3: Anemia
             const AnemiaDiagnosticoView(),
 
-
-            // 4: Perfil / Usuario
-            Consumer<AuthController>(
-              builder: (context, authController, child) {
-                final usuario = authController.usuarioActual;
-                final nombre = usuario?.nombre ?? usuario?.usuario ?? 'Usuario';
-                final email = usuario?.email ?? '';
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.blue.shade100,
-                        child: Icon(Icons.person, size: 40, color: Colors.blue.shade700),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(nombre, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      if (email.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(email, style: TextStyle(color: Colors.grey.shade600)),
-                      ],
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _handleLogout,
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Cerrar Sesión'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            // 4: Perfil - Simplificado
+            _buildPerfilSimplificado(),
           ],
         ),
       ),
@@ -262,7 +221,6 @@ class _HomeViewState extends State<HomeView> {
         selectedItemColor: Colors.blue.shade700,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
-          // Si el usuario pulsa Evaluación (índice 2) navegamos al flujo de registro/evaluación.
           if (index == 2) {
             Navigator.of(context).pushNamed('/registro_flow');
             return;
@@ -271,140 +229,144 @@ class _HomeViewState extends State<HomeView> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Plan'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Evaluación'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Anemia'),
+          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Plan'),
+          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Registrar'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
         type: BottomNavigationBarType.fixed,
       ),
       floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton.extended(
-              onPressed: _navigateToRegisterChild,
+          ? FloatingActionButton(
+              onPressed: () => Navigator.of(context).pushNamed('/registro_flow'),
               backgroundColor: Colors.blue.shade700,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: const Text('Registrar Niño'),
+              child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
     );
   }
 
-  // Nuevo: extraigo el contenido original del Home a un método para mantener orden
+  // DISEÑO SIMPLIFICADO DEL HOME
   Widget _buildHomeContent(AuthController authController, NinoController ninoController) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Bienvenida
-        _buildWelcomeCard(authController),
-        const SizedBox(height: 16),
+    if (ninoController.isLoading && ninoController.ninos.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        // Estadísticas
-        _buildStatisticsCard(ninoController),
-        const SizedBox(height: 16),
-
-        // Lista de niños registrados
-        _buildRecentChildren(ninoController),
-      ],
-    );
-  }
-
-  Widget _buildWelcomeCard(AuthController authController) {
-    final usuario = authController.usuarioActual;
-    final nombreMostrar = usuario?.nombre ?? usuario?.usuario ?? 'Usuario';
-
-    return Card(
-      elevation: 4,
-      child: Padding(
+    return RefreshIndicator(
+      onRefresh: _refrescarDatos,
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(
-                Icons.person,
-                size: 30,
-                color: Colors.blue.shade700,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '¡Hola, $nombreMostrar!',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Bienvenido al sistema de registro nutricional',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Header simplificado
+            _buildWelcomeHeader(authController),
+            const SizedBox(height: 20),
+
+            // Estadísticas compactas
+            _buildCompactStats(ninoController),
+            const SizedBox(height: 20),
+
+            // Registros recientes simplificados
+            _buildSimpleRegistrosList(ninoController),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatisticsCard(NinoController ninoController) {
+  // Header de bienvenida más simple
+  Widget _buildWelcomeHeader(AuthController authController) {
+    final usuario = authController.usuarioActual;
+    final nombreMostrar = usuario?.nombre ?? usuario?.usuario ?? 'Usuario';
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade600, Colors.blue.shade800],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hola, $nombreMostrar',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Control nutricional infantil',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Estadísticas más compactas
+  Widget _buildCompactStats(NinoController ninoController) {
     final stats = ninoController.estadisticas;
     
     return Card(
-      elevation: 4,
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Estadísticas',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            const Text(
+              'Resumen',
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _buildStatItem(
-                    'Total Niños',
-                    '${stats['totalNinos'] ?? 0}',
-                    Icons.child_care,
-                    Colors.blue,
-                  ),
+                _buildSimpleStatItem(
+                  'Total',
+                  '${stats['totalNinos'] ?? 0}',
+                  Icons.child_care,
+                  Colors.blue,
                 ),
-                Expanded(
-                  child: _buildStatItem(
-                    'Masculinos',
-                    '${stats['masculinos'] ?? 0}',
-                    Icons.boy,
-                    Colors.green,
-                  ),
+                _buildSimpleStatItem(
+                  'Niños',
+                  '${stats['masculinos'] ?? 0}',
+                  Icons.boy,
+                  Colors.green,
                 ),
-                Expanded(
-                  child: _buildStatItem(
-                    'Femeninos',
-                    '${stats['femeninos'] ?? 0}',
-                    Icons.girl,
-                    Colors.pink,
-                  ),
-                ),
-                Expanded(
-                  child: _buildStatItem(
-                    'Hoy',
-                    '${stats['registrosHoy'] ?? 0}',
-                    Icons.today,
-                    Colors.orange,
-                  ),
+                _buildSimpleStatItem(
+                  'Niñas',
+                  '${stats['femeninos'] ?? 0}',
+                  Icons.girl,
+                  Colors.pink,
                 ),
               ],
             ),
@@ -414,42 +376,37 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildSimpleStatItem(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildRecentChildren(NinoController ninoController) {
-    final ninos = ninoController.ninos.take(5).toList(); // Solo mostrar los 5 más recientes
+  // Lista de registros simplificada
+  Widget _buildSimpleRegistrosList(NinoController ninoController) {
+    final ninos = ninoController.ninos.take(5).toList();
 
     return Card(
-      elevation: 4,
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -458,200 +415,222 @@ class _HomeViewState extends State<HomeView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Registros Recientes',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextButton(
-                  onPressed: _navigateToChildrenList,
-                  child: const Text('Ver todos'),
-                ),
+                if (ninos.isNotEmpty)
+                  TextButton(
+                    onPressed: () => _showAllRegistros(ninoController.ninos),
+                    child: const Text('Ver todos'),
+                  ),
               ],
             ),
-            const SizedBox(height: 16),
-            
-            // DEBUG: Información de estado
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'DEBUG INFO:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange[700],
-                    ),
-                  ),
-                  Text(
-                    'Total niños: ${ninoController.ninos.length}',
-                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
-                  ),
-                  Text(
-                    'Loading: ${ninoController.isLoading}',
-                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
-                  ),
-                  Text(
-                    'Error: ${ninoController.errorMessage ?? 'No hay errores'}',
-                    style: TextStyle(fontSize: 11, color: Colors.orange[700]),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             
             if (ninos.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text(
-                    'No hay registros aún.\n¡Registra el primer niño!',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
+              _buildEmptyState()
             else
-              ...ninos.map((nino) => _buildChildListItem(nino)),
+              ...ninos.map((nino) => _buildSimpleRegistroCard(nino)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildChildListItem(dynamic nino) {
+  // Card de registro simplificada
+  Widget _buildSimpleRegistroCard(dynamic nino) {
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: CircleAvatar(
         backgroundColor: nino.sexo == 'Masculino' 
             ? Colors.blue.shade100 
             : Colors.pink.shade100,
+        radius: 20,
         child: Icon(
           nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
           color: nino.sexo == 'Masculino' 
               ? Colors.blue.shade700 
               : Colors.pink.shade700,
+          size: 20,
         ),
       ),
-      title: Text(nino.nombreCompleto),
-      subtitle: Text('DNI: ${nino.dniNino} • ${nino.edad} años'),
-      trailing: nino.clasificacionIMC != null
-          ? Chip(
-              label: Text(
-                nino.clasificacionIMC!,
-                style: const TextStyle(fontSize: 10),
-              ),
-              backgroundColor: _getIMCColor(nino.clasificacionIMC!),
-            )
-          : null,
+      title: Text(
+        nino.nombreCompleto,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(
+        '${nino.edad} años${nino.clasificacionIMC != null ? ' • ${nino.clasificacionIMC}' : ''}',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade600,
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        size: 16,
+        color: Colors.grey.shade400,
+      ),
       onTap: () => _viewChildDetails(nino),
     );
   }
 
-  Color _getIMCColor(String? clasificacion) {
-    if (clasificacion == null) return Colors.grey.shade100;
-    switch (clasificacion.toLowerCase()) {
-      case 'bajo peso':
-        return Colors.blue.shade100;
-      case 'peso normal':
-      case 'normal':
-        return Colors.green.shade100;
-      case 'sobrepeso':
-        return Colors.orange.shade100;
-      case 'obesidad':
-        return Colors.red.shade100;
-      default:
-        return Colors.grey.shade100;
-    }
-  }
-
-  Color _getIMCTextColor(String? clasificacion) {
-    if (clasificacion == null) return Colors.grey;
-    switch (clasificacion.toLowerCase()) {
-      case 'bajo peso':
-        return Colors.orange;
-      case 'peso normal':
-      case 'normal':
-        return Colors.green;
-      case 'sobrepeso':
-        return Colors.orange;
-      case 'obesidad':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  void _handleLogout() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Icon(
+            Icons.child_care,
+            size: 48,
+            color: Colors.grey.shade300,
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Provider.of<AuthController>(context, listen: false).logout();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute<void>(builder: (_) => const LoginView()),
-              );
-            },
-            child: const Text('Cerrar Sesión'),
+          const SizedBox(height: 12),
+          Text(
+            'No hay registros aún',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Toca el botón + para comenzar',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _navigateToRegisterChild() {
-    Navigator.of(context).pushNamed('/registro_flow');
+  // BOTÓN DE AYUDA
+  Widget _buildHelpButton() {
+    return IconButton(
+      onPressed: () => _showHelpDialog(),
+      icon: const Icon(Icons.help_outline),
+      tooltip: 'Ayuda y tutorial',
+    );
   }
 
-  void _navigateToChildrenList() {
-    // TODO: Implementar navegación a la lista completa
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funcionalidad en desarrollo'),
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.help_outline, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Ayuda'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHelpSection('🏠 Inicio', 'Visualiza tus estadísticas y registros recientes'),
+              _buildHelpSection('➕ Registrar', 'Agrega un nuevo niño al sistema'),
+              _buildHelpSection('👤 Perfil', 'Gestiona tu información personal'),
+              _buildHelpSection('🔄 Actualizar', 'Desliza hacia abajo o toca el ícono de actualizar'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  '💡 Consejo: Mantén presionado cualquier elemento para ver más opciones',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendido'),
+          ),
+        ],
       ),
     );
   }
 
-  void _viewChildDetails(dynamic nino) {
-    showDialog(
-      context: context,
-      builder: (context) => _buildChildDetailsDialog(nino),
+  Widget _buildHelpSection(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildChildDetailsDialog(dynamic nino) {
+  void _showAllRegistros(List<dynamic> ninos) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _AllRegistrosView(ninos: ninos),
+      ),
+    );
+  }
+
+  // Métodos existentes simplificados
+  void _viewChildDetails(dynamic nino) {
+    showDialog(
+      context: context,
+      builder: (context) => _buildSimpleDetailsDialog(nino),
+    );
+  }
+
+  Widget _buildSimpleDetailsDialog(dynamic nino) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
+            // Header simple
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
+                  backgroundColor: nino.sexo == 'Masculino' 
+                      ? Colors.blue.shade100 
+                      : Colors.pink.shade100,
                   child: Icon(
                     nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: Colors.blue.shade700,
+                    color: nino.sexo == 'Masculino' 
+                        ? Colors.blue.shade700 
+                        : Colors.pink.shade700,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -662,7 +641,7 @@ class _HomeViewState extends State<HomeView> {
                       Text(
                         nino.nombreCompleto,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -682,86 +661,36 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ],
             ),
-            const Divider(height: 20),
+            
+            const Divider(height: 24),
             
             // Información básica
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailSection('Información Personal', [
-                      _buildDetailRow('Edad', '${nino.edad} años'),
-                      _buildDetailRow('Sexo', nino.sexo),
-                      _buildDetailRow('Fecha de nacimiento', DateFormat('dd/MM/yyyy').format(nino.fechaNacimiento)),
-                      _buildDetailRow('Residencia', nino.residencia),
-                    ]),
-                    
-                    _buildDetailSection('Tutor/Responsable', [
-                      _buildDetailRow('Nombre del tutor', nino.nombreTutor),
-                      _buildDetailRow('DNI del tutor', nino.dniPadre),
-                    ]),
-                    
-                    _buildDetailSection('Medidas Antropométricas', [
-                      _buildDetailRow('Peso', '${nino.peso} kg'),
-                      _buildDetailRow('Talla', '${nino.talla} cm'),
-                      _buildDetailRow('IMC', nino.imc?.toStringAsFixed(2) ?? 'N/A'),
-                      _buildDetailRow(
-                        'Clasificación IMC', 
-                        nino.clasificacionIMC ?? 'N/A',
-                        color: _getIMCTextColor(nino.clasificacionIMC),
-                      ),
-                    ]),
-                    
-                    if (nino.anemia != null || nino.fatiga != null) ...[
-                      _buildDetailSection('Cuestionario de Salud', [
-                        if (nino.anemia != null) _buildDetailRow('Anemia previa', nino.anemia!),
-                        if (nino.alimentosHierro != null) _buildDetailRow('Alimentos con hierro', nino.alimentosHierro!),
-                        if (nino.fatiga != null) _buildDetailRow('Fatiga frecuente', nino.fatiga!),
-                        if (nino.alimentacionBalanceada != null) _buildDetailRow('Alimentación balanceada', nino.alimentacionBalanceada!),
-                        if (nino.palidez != null) _buildDetailRow('Palidez', nino.palidez!),
-                        if (nino.disminucionRendimiento != null) _buildDetailRow('Disminución del rendimiento', nino.disminucionRendimiento!),
-                      ]),
-                    ],
-                    
-                    if (nino.evaluacionAnemia != null) ...[
-                      _buildDetailSection('Evaluación de Anemia', [
-                        _buildDetailRow(
-                          'Riesgo', 
-                          nino.evaluacionAnemia!,
-                          color: _getAnemiaRiskColor(nino.evaluacionAnemia!),
-                        ),
-                      ]),
-                    ],
-                    
-                    _buildDetailSection('Registro', [
-                      _buildDetailRow('Fecha de registro', DateFormat('dd/MM/yyyy HH:mm').format(nino.fechaRegistro)),
-                    ]),
-                  ],
-                ),
+              child: ListView(
+                children: [
+                  _buildDetailRow('Edad', '${nino.edad} años'),
+                  _buildDetailRow('Sexo', nino.sexo),
+                  _buildDetailRow('Peso', '${nino.peso} kg'),
+                  _buildDetailRow('Talla', '${nino.talla} cm'),
+                  if (nino.clasificacionIMC != null)
+                    _buildDetailRow('IMC', nino.clasificacionIMC!, 
+                        color: _getIMCTextColor(nino.clasificacionIMC!)),
+                ],
               ),
             ),
             
-            // Botones de acción
+            // Botones
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RegistroNinoFlow(ninoAEditar: nino),
-                      ),
-                    );
+                    _editarNino(nino);
                   },
                   icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                  label: Text(
-                    'Editar',
-                    style: TextStyle(color: Colors.blue.shade700),
-                  ),
+                  label: Text('Editar', style: TextStyle(color: Colors.blue.shade700)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -775,33 +704,13 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1976D2),
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...children,
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
   Widget _buildDetailRow(String label, String value, {Color? color}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 80,
             child: Text(
               '$label:',
               style: TextStyle(
@@ -824,13 +733,210 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-
-
-  Color _getAnemiaRiskColor(String riesgo) {
-    if (riesgo.contains('Alta')) return Colors.red;
-    if (riesgo.contains('moderado')) return Colors.orange;
-    return Colors.green;
+  Color _getIMCTextColor(String clasificacion) {
+    switch (clasificacion.toLowerCase()) {
+      case 'bajo peso':
+        return Colors.orange.shade700;
+      case 'peso normal':
+      case 'normal':
+        return Colors.green.shade700;
+      case 'sobrepeso':
+        return Colors.orange.shade700;
+      case 'obesidad':
+        return Colors.red.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
   }
 
-  // Flujo mock anterior de Anemia eliminado (sustituido por AnemiaDiagnosticoView)
+  void _editarNino(dynamic nino) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RegistroNinoFlow(ninoAEditar: nino),
+      ),
+    ).then((_) => _refrescarDatos());
+  }
+
+  // Perfil simplificado
+  Widget _buildPerfilSimplificado() {
+    return Consumer<AuthController>(
+      builder: (context, authController, child) {
+        final usuario = authController.usuarioActual;
+        final nombre = usuario?.nombre ?? '';
+        final apellido = usuario?.apellido ?? '';
+        final usuarioName = usuario?.usuario ?? 'Usuario';
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              // Avatar
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade400, Colors.blue.shade700],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person,
+                  size: 50,
+                  color: Colors.white,
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Información
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildProfileField('Usuario', usuarioName, Icons.account_circle),
+                      const SizedBox(height: 12),
+                      _buildProfileField('Nombres', nombre.isNotEmpty ? nombre : 'No especificado', Icons.person),
+                      const SizedBox(height: 12),
+                      _buildProfileField('Apellidos', apellido.isNotEmpty ? apellido : 'No especificado', Icons.person_outline),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Botón logout
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _handleLogout,
+                  icon: const Icon(Icons.logout, color: Colors.red),
+                  label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileField(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.blue.shade700, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleLogout() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Provider.of<AuthController>(context, listen: false).logout();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const LoginView()),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Cerrar Sesión'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Vista separada para mostrar todos los registros
+class _AllRegistrosView extends StatelessWidget {
+  final List<dynamic> ninos;
+
+  const _AllRegistrosView({required this.ninos});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Todos los Registros'),
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: ninos.length,
+        itemBuilder: (context, index) {
+          final nino = ninos[index];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: nino.sexo == 'Masculino' 
+                    ? Colors.blue.shade100 
+                    : Colors.pink.shade100,
+                child: Icon(
+                  nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                  color: nino.sexo == 'Masculino' 
+                      ? Colors.blue.shade700 
+                      : Colors.pink.shade700,
+                ),
+              ),
+              title: Text(nino.nombreCompleto),
+              subtitle: Text('${nino.edad} años • DNI: ${nino.dniNino}'),
+              trailing: Text(
+                DateFormat('dd/MM/yy').format(nino.fechaRegistro),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              onTap: () {
+                // Mostrar detalles o navegar a edición
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
