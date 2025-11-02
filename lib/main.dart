@@ -14,7 +14,7 @@ import 'firebase_options.dart';
 import 'core/constants/app_constants.dart';
 import 'core/routes/rutas_app.dart';
 
-// ML Provider - COMENTADO TEMPORALMENTE HASTA QUE LO CREES
+// ML Provider
 import 'providers/ml_provider.dart';
 
 Future<void> main() async {
