@@ -108,34 +108,72 @@ class AnemiaRiskEngine {
     return AnemiaRiskResult(score: score, level: level, factores: factores);
   }
 
-  /// Calcula una heurística de palidez a partir del brillo medio de la imagen (0..1).
-  /// NOTA: Esto es un proxy simplificado. Para uso clínico, se requiere un modelo validado.
+  /// Calcula una heurística de palidez analizando el color rojo de la conjuntiva.
+  /// Detecta zonas rojizas (conjuntiva) y evalúa su saturación e intensidad.
+  /// Valores bajos indican palidez (posible anemia).
   static double? imagePalenessFromFile(File file) {
     try {
       final bytes = file.readAsBytesSync();
       final decoded = img.decodeImage(bytes);
       if (decoded == null) return null;
-      // brillo promedio normalizado: sqrt((r^2+g^2+b^2)/3)/255 aprox
-      var sum = 0.0;
-      final step = max(1, (decoded.width * decoded.height) ~/ 50000); // muestreo para speed
-      int count = 0;
+      
+      // Muestreo optimizado para velocidad
+      final step = max(1, (decoded.width * decoded.height) ~/ 50000);
+      
+      double redSum = 0.0;
+      double saturationSum = 0.0;
+      int redPixelCount = 0;
+      int totalSamples = 0;
+      
       for (int y = 0; y < decoded.height; y += step.toInt()) {
         for (int x = 0; x < decoded.width; x += step.toInt()) {
           final px = decoded.getPixel(x, y);
           final r = px.r.toDouble();
           final g = px.g.toDouble();
           final b = px.b.toDouble();
-          // luminancia simple
-          final lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-          sum += lum / 255.0;
-          count++;
+          
+          totalSamples++;
+          
+          // Detectar píxeles con componente rojo dominante (conjuntiva)
+          // Condiciones: R > G, R > B, y R debe ser significativo
+          if (r > g && r > b && r > 80) {
+            // Calcular saturación del rojo
+            final maxVal = max(r, max(g, b));
+            final minVal = min(r, min(g, b));
+            final saturation = maxVal > 0 ? (maxVal - minVal) / maxVal : 0.0;
+            
+            // Calcular intensidad del rojo normalizada
+            final redIntensity = r / 255.0;
+            
+            // Filtrar píxeles con suficiente saturación (no grises)
+            if (saturation > 0.15) {
+              redSum += redIntensity;
+              saturationSum += saturation;
+              redPixelCount++;
+            }
+          }
         }
       }
-      if (count == 0) return null;
-  final avgBrightness = sum / count; // 0..1
-  // Palidez ~ brillo alto – invertimos parcialmente para evitar extremos
-  final paleness = max(0.0, min(0.5, avgBrightness - 0.5)) * 2.0; // 0..1 solo si >0.5
-  return paleness;
+      
+      if (redPixelCount == 0 || totalSamples == 0) {
+        // No se detectaron zonas rojizas suficientes
+        return 0.7; // Valor medio-alto de palidez (posible problema)
+      }
+      
+      // Calcular métricas promedio
+      final avgRedIntensity = redSum / redPixelCount;
+      final avgSaturation = saturationSum / redPixelCount;
+      final redPixelRatio = redPixelCount / totalSamples;
+      
+      // Score de "rojez" saludable (0-1, donde 1 es muy rojo/saludable)
+      final healthyRedScore = (avgRedIntensity * 0.5) + (avgSaturation * 0.3) + (redPixelRatio * 20 * 0.2);
+      
+      // Invertir: palidez = falta de color rojo
+      // 1.0 = mucha palidez (poco rojo), 0.0 = sin palidez (mucho rojo)
+      final palenessScore = 1.0 - healthyRedScore.clamp(0.0, 1.0);
+      
+      return palenessScore.clamp(0.0, 1.0);
+      
     } catch (_) {
       return null;
     }

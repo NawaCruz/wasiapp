@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -694,7 +695,6 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
       ),
     ).then((_) => _refrescarDatos());
   }
-
   Widget _buildDetallesDialog(dynamic nino) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -776,6 +776,143 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                         _buildDetailRow('Clasificación IMC', nino.clasificacionIMC!,
                             color: _getIMCTextColor(nino.clasificacionIMC!)),
                     ]),
+                    
+                    // Sección de historial clínico - Foto de conjuntiva
+                    if (nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título de la sección (solo lectura)
+                          Row(
+                            children: [
+                              Icon(Icons.medical_information, color: Colors.blue.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Historial Clínico - Análisis Visual',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          // Contenedor de la foto con análisis
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.blue.shade200, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Etiqueta superior
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(14),
+                                      topRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.camera_alt, size: 16, color: Colors.blue.shade700),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Foto de Conjuntiva',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                
+                                // Foto
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 220,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        border: Border.all(color: Colors.grey[300]!),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Image.file(
+                                        File(nino.fotoConjuntivaUrl!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Imagen no disponible',
+                                                  style: TextStyle(color: Colors.grey[600]),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                
+                                // Nota informativa
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(14),
+                                      bottomRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.info_outline, size: 16, color: Colors.green.shade700),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Última foto capturada en diagnóstico de anemia',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     
                     _buildDetailSection('Registro', [
                       _buildDetailRow('Fecha', 

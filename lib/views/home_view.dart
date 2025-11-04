@@ -1,11 +1,14 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 import 'anemia_diagnostico_view.dart';
 import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
+import '../utils/anemia_risk.dart';
 import 'login_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -675,6 +678,187 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   if (nino.clasificacionIMC != null)
                     _buildDetailRow('IMC', nino.clasificacionIMC!, 
                         color: _getIMCTextColor(nino.clasificacionIMC!)),
+                  
+                  // Historial Clínico - Foto de Conjuntiva
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  
+                  // Título de la sección con botón para tomar foto
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.medical_information, color: Colors.blue.shade700, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Historial Clínico',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Botón para tomar/actualizar foto
+                      IconButton(
+                        onPressed: () => _tomarFotoConjuntiva(nino),
+                        icon: Icon(
+                          nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty
+                              ? Icons.refresh
+                              : Icons.add_a_photo,
+                          color: Colors.purple.shade600,
+                          size: 20,
+                        ),
+                        tooltip: nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty
+                            ? 'Actualizar foto'
+                            : 'Tomar foto',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Contenedor de la foto o mensaje para tomar foto
+                  if (nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty) ...[
+                    // Contenedor de la foto
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade200, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.camera_alt, size: 14, color: Colors.blue.shade700),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Foto de Conjuntiva',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Foto
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                width: double.infinity,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Image.file(
+                                  File(nino.fotoConjuntivaUrl!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.image_not_supported, size: 40, color: Colors.grey[400]),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Imagen no disponible',
+                                            style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          // Footer
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline, size: 14, color: Colors.green.shade700),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Última foto de diagnóstico',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Mensaje cuando no hay foto
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.purple.shade200, width: 2, style: BorderStyle.solid),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.add_a_photo, size: 48, color: Colors.purple.shade300),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Sin foto de conjuntiva',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.purple.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -747,6 +931,267 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       default:
         return Colors.grey.shade700;
     }
+  }
+
+  // Función para tomar/actualizar foto de conjuntiva
+  Future<void> _tomarFotoConjuntiva(dynamic nino) async {
+    final ImagePicker picker = ImagePicker();
+    
+    try {
+      // Mostrar diálogo con instrucciones y opciones
+      final ImageSource? imageSource = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.camera_alt, color: Colors.purple.shade600),
+              const SizedBox(width: 8),
+              const Text('Análisis Visual de Conjuntiva'),
+            ],
+          ),
+          content: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.purple.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.purple.shade600, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Instrucciones para la foto:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildInstruccion('1', 'Baje suavemente el párpado inferior'),
+                _buildInstruccion('2', 'Exponga la conjuntiva (parte interna rosada del ojo)'),
+                _buildInstruccion('3', 'Tome la foto en un lugar bien iluminado'),
+                _buildInstruccion('4', 'Mantenga la cámara estable y enfocada'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text('Cancelar'),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pop(context, ImageSource.gallery),
+              icon: const Icon(Icons.photo_library),
+              label: const Text('Galería'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.purple.shade600,
+                side: BorderSide(color: Colors.purple.shade600),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context, ImageSource.camera),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Cámara'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple.shade600,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+      
+      if (imageSource == null) return;
+      
+      // Tomar la foto o seleccionar de galería
+      final XFile? foto = await picker.pickImage(
+        source: imageSource,
+        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      
+      if (foto == null) return;
+      
+      // Mostrar indicador de carga
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      
+      final File fotoFile = File(foto.path);
+      
+      // Calcular score de palidez
+      final score = AnemiaRiskEngine.imagePalenessFromFile(fotoFile);
+      
+      // Actualizar el niño con la nueva foto
+      final ninoActualizado = nino.copyWith(
+        fotoConjuntivaUrl: fotoFile.path,
+      );
+      
+      final ninoController = context.read<NinoController>();
+      final exitoso = await ninoController.actualizarNino(
+        ninoActualizado,
+        usuarioId: nino.usuarioId,
+      );
+      
+      // Cerrar indicador de carga
+      if (mounted) Navigator.pop(context);
+      
+      if (exitoso) {
+        // Mostrar resultado
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green.shade600),
+                  const SizedBox(width: 8),
+                  const Text('Foto guardada'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (score != null)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _getPalenessColor(score).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _getPalenessColor(score), width: 2),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Análisis de conjuntiva: ${_getPalenessLevel(score)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: _getPalenessColor(score),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Score de palidez: ${(score * 100).toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    const Text('Foto guardada correctamente'),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Cerrar diálogo de resultado
+                    Navigator.pop(context); // Cerrar diálogo de detalles del niño
+                    _refrescarDatos(); // Recargar datos
+                  },
+                  child: const Text('Aceptar'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error al guardar la foto'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Cerrar indicador de carga si está abierto
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildInstruccion(String numero, String texto) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.purple.shade600,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                numero,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPalenessLevel(double score) {
+    if (score < 0.3) return 'Normal (buena coloración)';
+    if (score < 0.6) return 'Palidez leve';
+    if (score < 0.8) return 'Palidez moderada';
+    return 'Palidez severa';
+  }
+
+  Color _getPalenessColor(double score) {
+    if (score < 0.3) return Colors.green;
+    if (score < 0.6) return Colors.yellow.shade700;
+    if (score < 0.8) return Colors.orange;
+    return Colors.red;
   }
 
   void _editarNino(dynamic nino) {

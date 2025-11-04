@@ -28,6 +28,9 @@ class NinoModel {
   
   // Campo para asociar con el usuario
   final String? usuarioId;
+  
+  // Campo para la foto de la conjuntiva
+  final String? fotoConjuntivaUrl;
 
   NinoModel({
     required this.id,
@@ -53,6 +56,7 @@ class NinoModel {
     this.disminucionRendimiento,
     this.evaluacionAnemia,
     this.usuarioId,
+    this.fotoConjuntivaUrl,
   });
 
   // Factory constructor para crear desde Map (Firestore)
@@ -83,6 +87,7 @@ class NinoModel {
       disminucionRendimiento: map['disminucionRendimiento'],
       evaluacionAnemia: map['evaluacionAnemia'],
       usuarioId: map['usuarioId'],
+      fotoConjuntivaUrl: map['fotoConjuntivaUrl'],
     );
   }
 
@@ -111,6 +116,7 @@ class NinoModel {
       'disminucionRendimiento': disminucionRendimiento,
       'evaluacionAnemia': evaluacionAnemia,
       'usuarioId': usuarioId,
+      'fotoConjuntivaUrl': fotoConjuntivaUrl,
     };
   }
 
@@ -139,6 +145,7 @@ class NinoModel {
     String? disminucionRendimiento,
     String? evaluacionAnemia,
     String? usuarioId,
+    String? fotoConjuntivaUrl,
   }) {
     return NinoModel(
       id: id ?? this.id,
@@ -164,6 +171,7 @@ class NinoModel {
       disminucionRendimiento: disminucionRendimiento ?? this.disminucionRendimiento,
       evaluacionAnemia: evaluacionAnemia ?? this.evaluacionAnemia,
       usuarioId: usuarioId ?? this.usuarioId,
+      fotoConjuntivaUrl: fotoConjuntivaUrl ?? this.fotoConjuntivaUrl,
     );
   }
 
