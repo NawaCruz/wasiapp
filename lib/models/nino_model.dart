@@ -31,6 +31,11 @@ class NinoModel {
   
   // Campo para la foto de la conjuntiva
   final String? fotoConjuntivaUrl;
+  
+  // Campos para el diagnóstico de anemia
+  final String? diagnosticoAnemiaRiesgo; // 'alto', 'medio', 'bajo'
+  final double? diagnosticoAnemiaScore; // 0-100
+  final DateTime? diagnosticoAnemiaFecha;
 
   NinoModel({
     required this.id,
@@ -57,6 +62,9 @@ class NinoModel {
     this.evaluacionAnemia,
     this.usuarioId,
     this.fotoConjuntivaUrl,
+    this.diagnosticoAnemiaRiesgo,
+    this.diagnosticoAnemiaScore,
+    this.diagnosticoAnemiaFecha,
   });
 
   // Factory constructor para crear desde Map (Firestore)
@@ -88,6 +96,11 @@ class NinoModel {
       evaluacionAnemia: map['evaluacionAnemia'],
       usuarioId: map['usuarioId'],
       fotoConjuntivaUrl: map['fotoConjuntivaUrl'],
+      diagnosticoAnemiaRiesgo: map['diagnosticoAnemiaRiesgo'],
+      diagnosticoAnemiaScore: map['diagnosticoAnemiaScore']?.toDouble(),
+      diagnosticoAnemiaFecha: map['diagnosticoAnemiaFecha'] != null
+          ? (map['diagnosticoAnemiaFecha'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -117,6 +130,11 @@ class NinoModel {
       'evaluacionAnemia': evaluacionAnemia,
       'usuarioId': usuarioId,
       'fotoConjuntivaUrl': fotoConjuntivaUrl,
+      'diagnosticoAnemiaRiesgo': diagnosticoAnemiaRiesgo,
+      'diagnosticoAnemiaScore': diagnosticoAnemiaScore,
+      'diagnosticoAnemiaFecha': diagnosticoAnemiaFecha != null
+          ? Timestamp.fromDate(diagnosticoAnemiaFecha!)
+          : null,
     };
   }
 
@@ -146,6 +164,9 @@ class NinoModel {
     String? evaluacionAnemia,
     String? usuarioId,
     String? fotoConjuntivaUrl,
+    String? diagnosticoAnemiaRiesgo,
+    double? diagnosticoAnemiaScore,
+    DateTime? diagnosticoAnemiaFecha,
   }) {
     return NinoModel(
       id: id ?? this.id,
@@ -172,6 +193,9 @@ class NinoModel {
       evaluacionAnemia: evaluacionAnemia ?? this.evaluacionAnemia,
       usuarioId: usuarioId ?? this.usuarioId,
       fotoConjuntivaUrl: fotoConjuntivaUrl ?? this.fotoConjuntivaUrl,
+      diagnosticoAnemiaRiesgo: diagnosticoAnemiaRiesgo ?? this.diagnosticoAnemiaRiesgo,
+      diagnosticoAnemiaScore: diagnosticoAnemiaScore ?? this.diagnosticoAnemiaScore,
+      diagnosticoAnemiaFecha: diagnosticoAnemiaFecha ?? this.diagnosticoAnemiaFecha,
     );
   }
 

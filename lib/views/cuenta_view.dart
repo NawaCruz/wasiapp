@@ -669,6 +669,19 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     }
   }
 
+  Color _getRiskColor(String riesgo) {
+    switch (riesgo.toLowerCase()) {
+      case 'alto':
+        return Colors.red.shade700;
+      case 'medio':
+        return Colors.orange.shade700;
+      case 'bajo':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
   void _handleRegistroAction(String action, dynamic nino) {
     switch (action) {
       case 'view':
@@ -808,7 +821,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                               border: Border.all(color: Colors.blue.shade200, width: 2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.blue.withOpacity(0.1),
+                                  color: Colors.blue.withValues(alpha: 0.1),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -904,6 +917,180 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    
+                    // Sección de diagnóstico de anemia
+                    if (nino.diagnosticoAnemiaRiesgo != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título
+                          Row(
+                            children: [
+                              Icon(Icons.health_and_safety, color: Colors.blue.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Diagnóstico de Anemia',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          // Contenedor del diagnóstico
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withValues(alpha: 0.5), width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withValues(alpha: 0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                                  decoration: BoxDecoration(
+                                    color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withValues(alpha: 0.1),
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(14),
+                                      topRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.assignment, size: 18, color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Resultado del Análisis',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                
+                                // Contenido principal
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Badge de riesgo principal
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                              borderRadius: BorderRadius.circular(25),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withValues(alpha: 0.3),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              'Riesgo ${nino.diagnosticoAnemiaRiesgo!.toUpperCase()}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          if (nino.diagnosticoAnemiaScore != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.analytics, size: 16, color: Colors.grey[700]),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Score: ${nino.diagnosticoAnemiaScore!.toStringAsFixed(1)}',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      
+                                      const SizedBox(height: 14),
+                                      const Divider(height: 1),
+                                      const SizedBox(height: 14),
+                                      
+                                      // Fecha del diagnóstico
+                                      if (nino.diagnosticoAnemiaFecha != null)
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade50,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.calendar_today, size: 16, color: Colors.blue.shade700),
+                                              const SizedBox(width: 8),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Fecha del diagnóstico',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    DateFormat('dd/MM/yyyy HH:mm').format(nino.diagnosticoAnemiaFecha!),
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.blue.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),

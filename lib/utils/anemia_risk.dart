@@ -52,31 +52,12 @@ class AnemiaRiskResult {
 }
 
 class AnemiaRiskEngine {
-  /// Estimar riesgo combinando hemoglobina (si hay), IMC, cuestionario e imagen.
+  /// Estimar riesgo combinando IMC, cuestionario e imagen.
   static AnemiaRiskResult estimate(AnemiaRiskInput i) {
     double score = 0;
     final factores = <String>[];
 
-    // 1) Hemoglobina (peso alto si está disponible)
-    if (i.hemoglobina != null) {
-      final umbral = _umbralHbOMS(i.edadMeses);
-      if (i.hemoglobina! < umbral - 1.0) {
-        score += 45; // anemia clara
-        factores.add('Hemoglobina baja (< ${umbral.toStringAsFixed(1)} g/dL)');
-      } else if (i.hemoglobina! < umbral) {
-        score += 30; // cerca al límite
-        factores.add('Hemoglobina en el límite (≈ ${umbral.toStringAsFixed(1)} g/dL)');
-      } else {
-        score += 10; // normal
-        factores.add('Hemoglobina en rango');
-      }
-    } else {
-      // Sin hemoglobina: depender más de otros factores
-      score += 5; // incertidumbre
-      factores.add('Hemoglobina no disponible');
-    }
-
-    // 2) IMC (bajo peso aumenta riesgo)
+    // 1) IMC (bajo peso aumenta riesgo)
     final imc = _imc(i.pesoKg, i.tallaM);
     if (imc <= 14) {
       score += 20; factores.add('IMC bajo (${imc.toStringAsFixed(1)})');
@@ -86,13 +67,13 @@ class AnemiaRiskEngine {
       score += 5; factores.add('IMC en rango (${imc.toStringAsFixed(1)})');
     }
 
-    // 3) Cuestionario (cada indicador suma)
+    // 2) Cuestionario (cada indicador suma)
     final qFlags = [i.palidez, i.fatiga, i.apetitoBajo, i.infeccionesFrecuentes, i.bajaIngestaHierro];
     final qScore = qFlags.where((f) => f).length * 6.0; // hasta 30 pts
     score += qScore;
     if (qScore > 0) factores.add('Síntomas/dieta: +${qScore.toInt()} pts');
 
-    // 4) Imagen (brillo → palidez) - score [0..1] mapea hasta 25 pts
+    // 3) Imagen (análisis de palidez de conjuntiva) - score [0..1] mapea hasta 25 pts
     if (i.imagePalenessScore != null) {
       final imgPts = (i.imagePalenessScore!.clamp(0, 1) * 25);
       score += imgPts;
@@ -109,8 +90,12 @@ class AnemiaRiskEngine {
   }
 
   /// Calcula una heurística de palidez analizando el color rojo de la conjuntiva.
-  /// Detecta zonas rojizas (conjuntiva) y evalúa su saturación e intensidad.
+  /// Detecta zonas rojizas (conjuntiva) y evalúa su saturación, intensidad y dominancia.
   /// Valores bajos indican palidez (posible anemia).
+  /// 
+  /// Criterios de detección basados en análisis clínico:
+  /// - SALUDABLE: R >> G y R >> B (diferencia ~100+ puntos), saturación alta (0.55-0.65)
+  /// - ANEMIA: R ≈ G ≈ B (diferencia ~15-20 puntos), saturación baja (0.10-0.20)
   static double? imagePalenessFromFile(File file) {
     try {
       final bytes = file.readAsBytesSync();
@@ -122,6 +107,7 @@ class AnemiaRiskEngine {
       
       double redSum = 0.0;
       double saturationSum = 0.0;
+      double redDominanceSum = 0.0; // Nueva métrica: dominancia del rojo
       int redPixelCount = 0;
       int totalSamples = 0;
       
@@ -135,8 +121,9 @@ class AnemiaRiskEngine {
           totalSamples++;
           
           // Detectar píxeles con componente rojo dominante (conjuntiva)
-          // Condiciones: R > G, R > B, y R debe ser significativo
-          if (r > g && r > b && r > 80) {
+          // Umbral aumentado: R debe ser significativo (>120 en lugar de >80)
+          // Esto filtra píxeles muy oscuros que no son conjuntiva
+          if (r > g && r > b && r > 120) {
             // Calcular saturación del rojo
             final maxVal = max(r, max(g, b));
             final minVal = min(r, min(g, b));
@@ -145,10 +132,17 @@ class AnemiaRiskEngine {
             // Calcular intensidad del rojo normalizada
             final redIntensity = r / 255.0;
             
-            // Filtrar píxeles con suficiente saturación (no grises)
-            if (saturation > 0.15) {
+            // Calcular dominancia del rojo (qué tan mayor es R respecto a G y B)
+            // Valores altos indican conjuntiva saludable
+            final avgOthers = (g + b) / 2;
+            final redDominance = avgOthers > 0 ? (r - avgOthers) / 255.0 : 0.0;
+            
+            // Filtrar píxeles con suficiente saturación (umbral aumentado de 0.15 a 0.25)
+            // Esto descarta más píxeles grisáceos/pálidos característicos de anemia
+            if (saturation > 0.25) {
               redSum += redIntensity;
               saturationSum += saturation;
+              redDominanceSum += redDominance.clamp(0.0, 1.0);
               redPixelCount++;
             }
           }
@@ -157,16 +151,23 @@ class AnemiaRiskEngine {
       
       if (redPixelCount == 0 || totalSamples == 0) {
         // No se detectaron zonas rojizas suficientes
-        return 0.7; // Valor medio-alto de palidez (posible problema)
+        // Esto indica palidez severa o foto inadecuada
+        return 0.8; // Valor alto de palidez (posible anemia)
       }
       
       // Calcular métricas promedio
       final avgRedIntensity = redSum / redPixelCount;
       final avgSaturation = saturationSum / redPixelCount;
+      final avgRedDominance = redDominanceSum / redPixelCount;
       final redPixelRatio = redPixelCount / totalSamples;
       
       // Score de "rojez" saludable (0-1, donde 1 es muy rojo/saludable)
-      final healthyRedScore = (avgRedIntensity * 0.5) + (avgSaturation * 0.3) + (redPixelRatio * 20 * 0.2);
+      // Pesos ajustados para dar más importancia a la dominancia del rojo
+      final healthyRedScore = 
+        (avgRedIntensity * 0.35) +      // 35% peso: intensidad roja
+        (avgSaturation * 0.25) +        // 25% peso: saturación
+        (avgRedDominance * 0.30) +      // 30% peso: dominancia R sobre G y B (NUEVO)
+        (redPixelRatio * 20 * 0.10);    // 10% peso: proporción de área roja
       
       // Invertir: palidez = falta de color rojo
       // 1.0 = mucha palidez (poco rojo), 0.0 = sin palidez (mucho rojo)
@@ -182,14 +183,5 @@ class AnemiaRiskEngine {
   static double _imc(double pesoKg, double tallaM) {
     if (tallaM <= 0) return 0;
     return pesoKg / (tallaM * tallaM);
-  }
-
-  /// Umbral OMS simplificado por grupos de edad (6–59m, 5–11a, 12–14a)
-  static double _umbralHbOMS(int edadMeses) {
-    if (edadMeses < 6) return 10.5; // neonatal tardío – aproximación
-    if (edadMeses <= 59) return 11.0; // 6–59 meses
-    if (edadMeses <= 132) return 11.5; // 5–11 años
-    if (edadMeses <= 168) return 12.0; // 12–14 años
-    return 12.0; // >= 15 sin considerar sexo/embarazo (simplificado)
   }
 }

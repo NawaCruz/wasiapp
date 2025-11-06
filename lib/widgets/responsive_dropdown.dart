@@ -55,7 +55,7 @@ class ResponsiveDropdown<T> extends StatelessWidget {
           borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
           boxShadow: [
             BoxShadow(
-              color: (primaryColor ?? Colors.green).withOpacity(0.1),
+              color: (primaryColor ?? Colors.green).withValues(alpha: 0.1),
               blurRadius: isSmallScreen ? 4 : 8,
               offset: Offset(0, isSmallScreen ? 2 : 4),
             ),
@@ -132,7 +132,7 @@ class ResponsiveDropdown<T> extends StatelessWidget {
         borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.3),
+            color: primaryColor.withValues(alpha: 0.3),
             blurRadius: isSmallScreen ? 3 : 6,
             offset: Offset(0, isSmallScreen ? 1 : 2),
           ),

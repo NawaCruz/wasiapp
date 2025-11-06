@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
 import 'anemia_diagnostico_view.dart';
 import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
-import '../utils/anemia_risk.dart';
 import 'login_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -684,40 +682,22 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   const Divider(),
                   const SizedBox(height: 8),
                   
-                  // Título de la sección con botón para tomar foto
+                  // Título de la sección
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.medical_information, color: Colors.blue.shade700, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Historial Clínico',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Botón para tomar/actualizar foto
-                      IconButton(
-                        onPressed: () => _tomarFotoConjuntiva(nino),
-                        icon: Icon(
-                          nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty
-                              ? Icons.refresh
-                              : Icons.add_a_photo,
-                          color: Colors.purple.shade600,
-                          size: 20,
+                      Icon(Icons.medical_information, color: Colors.blue.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Historial Clínico',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
                         ),
-                        tooltip: nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty
-                            ? 'Actualizar foto'
-                            : 'Tomar foto',
                       ),
                     ],
                   ),
+                  
                   const SizedBox(height: 12),
                   
                   // Contenedor de la foto o mensaje para tomar foto
@@ -859,6 +839,141 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       ),
                     ),
                   ],
+                  
+                  // Sección: Diagnóstico de Anemia
+                  const SizedBox(height: 16),
+                  if (nino.diagnosticoAnemiaRiesgo != null) ...[
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.5), width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.1),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.health_and_safety, size: 14, color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Diagnóstico de Anemia',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Contenido
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Badge de riesgo
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        'Riesgo ${nino.diagnosticoAnemiaRiesgo!.toUpperCase()}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    if (nino.diagnosticoAnemiaScore != null)
+                                      Text(
+                                        'Score: ${nino.diagnosticoAnemiaScore!.toStringAsFixed(1)}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                
+                                const SizedBox(height: 8),
+                                
+                                // Fecha del diagnóstico
+                                if (nino.diagnosticoAnemiaFecha != null)
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today, size: 12, color: Colors.grey[600]),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Fecha: ${DateFormat('dd/MM/yyyy').format(nino.diagnosticoAnemiaFecha!)}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Mensaje cuando no hay diagnóstico
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 20, color: Colors.grey.shade600),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Sin diagnóstico de anemia registrado',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -933,265 +1048,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     }
   }
 
-  // Función para tomar/actualizar foto de conjuntiva
-  Future<void> _tomarFotoConjuntiva(dynamic nino) async {
-    final ImagePicker picker = ImagePicker();
-    
-    try {
-      // Mostrar diálogo con instrucciones y opciones
-      final ImageSource? imageSource = await showDialog<ImageSource>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.camera_alt, color: Colors.purple.shade600),
-              const SizedBox(width: 8),
-              const Text('Análisis Visual de Conjuntiva'),
-            ],
-          ),
-          content: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.purple.shade600, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Instrucciones para la foto:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildInstruccion('1', 'Baje suavemente el párpado inferior'),
-                _buildInstruccion('2', 'Exponga la conjuntiva (parte interna rosada del ojo)'),
-                _buildInstruccion('3', 'Tome la foto en un lugar bien iluminado'),
-                _buildInstruccion('4', 'Mantenga la cámara estable y enfocada'),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: const Text('Cancelar'),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.pop(context, ImageSource.gallery),
-              icon: const Icon(Icons.photo_library),
-              label: const Text('Galería'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.purple.shade600,
-                side: BorderSide(color: Colors.purple.shade600),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context, ImageSource.camera),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Cámara'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple.shade600,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      );
-      
-      if (imageSource == null) return;
-      
-      // Tomar la foto o seleccionar de galería
-      final XFile? foto = await picker.pickImage(
-        source: imageSource,
-        imageQuality: 85,
-        maxWidth: 1024,
-        maxHeight: 1024,
-      );
-      
-      if (foto == null) return;
-      
-      // Mostrar indicador de carga
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      }
-      
-      final File fotoFile = File(foto.path);
-      
-      // Calcular score de palidez
-      final score = AnemiaRiskEngine.imagePalenessFromFile(fotoFile);
-      
-      // Actualizar el niño con la nueva foto
-      final ninoActualizado = nino.copyWith(
-        fotoConjuntivaUrl: fotoFile.path,
-      );
-      
-      final ninoController = context.read<NinoController>();
-      final exitoso = await ninoController.actualizarNino(
-        ninoActualizado,
-        usuarioId: nino.usuarioId,
-      );
-      
-      // Cerrar indicador de carga
-      if (mounted) Navigator.pop(context);
-      
-      if (exitoso) {
-        // Mostrar resultado
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green.shade600),
-                  const SizedBox(width: 8),
-                  const Text('Foto guardada'),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (score != null)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _getPalenessColor(score).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _getPalenessColor(score), width: 2),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Análisis de conjuntiva: ${_getPalenessLevel(score)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: _getPalenessColor(score),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Score de palidez: ${(score * 100).toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    const Text('Foto guardada correctamente'),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Cerrar diálogo de resultado
-                    Navigator.pop(context); // Cerrar diálogo de detalles del niño
-                    _refrescarDatos(); // Recargar datos
-                  },
-                  child: const Text('Aceptar'),
-                ),
-              ],
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al guardar la foto'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Cerrar indicador de carga si está abierto
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+  Color _getRiskColor(String riesgo) {
+    switch (riesgo.toLowerCase()) {
+      case 'alto':
+        return Colors.red.shade700;
+      case 'medio':
+        return Colors.orange.shade700;
+      case 'bajo':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey.shade700;
     }
-  }
-
-  Widget _buildInstruccion(String numero, String texto) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.purple.shade600,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                numero,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              texto,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getPalenessLevel(double score) {
-    if (score < 0.3) return 'Normal (buena coloración)';
-    if (score < 0.6) return 'Palidez leve';
-    if (score < 0.8) return 'Palidez moderada';
-    return 'Palidez severa';
-  }
-
-  Color _getPalenessColor(double score) {
-    if (score < 0.3) return Colors.green;
-    if (score < 0.6) return Colors.yellow.shade700;
-    if (score < 0.8) return Colors.orange;
-    return Colors.red;
   }
 
   void _editarNino(dynamic nino) {
