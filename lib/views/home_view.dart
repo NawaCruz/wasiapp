@@ -7,6 +7,7 @@ import 'anemia_diagnostico_view.dart';
 import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
+import '../widgets/custom_app_bar.dart';
 import 'login_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -92,11 +93,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(titles[_selectedIndex]),
+      appBar: CustomAppBar(
+        title: titles[_selectedIndex],
         backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: _selectedIndex == 0
             ? [
                 IconButton(
@@ -1209,10 +1208,9 @@ class _AllRegistrosView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Todos los Registros'),
+      appBar: CustomAppBar(
+        title: 'Todos los Registros',
         backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),

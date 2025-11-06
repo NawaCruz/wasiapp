@@ -36,7 +36,6 @@ class ConstantesFirebase {
   static const String campoSexo = 'sexo';
   static const String campoPeso = 'peso';
   static const String campoTalla = 'talla';
-  static const String campoHemoglobina = 'hemoglobina';
 }
 
 class Rutas {
@@ -66,7 +65,6 @@ class MensajesValidacion {
   static const String edadInvalida = 'La edad debe estar entre 0 y 72 meses';
   static const String pesoInvalido = 'El peso debe estar entre 1 y 50 kg';
   static const String tallaInvalida = 'La talla debe estar entre 30 y 150 cm';
-  static const String hemoglobinaInvalida = 'La hemoglobina debe estar entre 5 y 20 g/dL';
   static const String selectOption = 'Debe seleccionar una opción';
   static const String selectDate = 'Debe seleccionar una fecha';
 }

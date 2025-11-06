@@ -197,8 +197,8 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
         Hero(
           tag: 'app_logo',
           child: Container(
-            width: 100,
-            height: 100,
+            width: 110,
+            height: 110,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -217,28 +217,52 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.child_care,
-              size: 50,
-              color: Colors.white,
+            child: ClipOval(
+              child: Padding(
+                padding: const EdgeInsets.all(15),
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 28),
 
-        // Título
-        Text(
-          '¡Bienvenido de vuelta!',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: Colors.blue.shade800,
-            fontWeight: FontWeight.bold,
+        // Título mejorado - una sola línea
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '¡Bienvenido a WassiApp!',
+              style: TextStyle(
+                fontSize: 34,
+                color: Colors.blue.shade800,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                shadows: [
+                  Shadow(
+                    color: Colors.blue.shade100,
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
-          'Inicia sesión para continuar con el registro',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          'Monitoreo nutricional infantil',
+          style: TextStyle(
+            fontSize: 16,
             color: Colors.grey.shade600,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.3,
           ),
           textAlign: TextAlign.center,
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
-import '../utils/onboarding_service.dart';
 import 'login_view.dart';
 import 'home_view.dart';
 
@@ -69,25 +68,14 @@ class _SplashViewState extends State<SplashView>
     
     if (!mounted) return;
 
-    // Verificar si es la primera vez que usa la app
-    final hasSeenOnboarding = await OnboardingService.hasSeenOnboarding();
-    
-    if (!mounted) return; // Verificar nuevamente después del segundo await
+    // Verificar autenticación
+    final authController = Provider.of<AuthController>(context, listen: false);
     
     Widget nextScreen;
-    
-    if (!hasSeenOnboarding) {
-      // Primera vez: mostrar onboarding
-      nextScreen = const OnboardingView();
+    if (authController.isLoggedIn) {
+      nextScreen = const HomeView();
     } else {
-      // Ya vio el onboarding: verificar autenticación
-      final authController = Provider.of<AuthController>(context, listen: false);
-      
-      if (authController.isLoggedIn) {
-        nextScreen = const HomeView();
-      } else {
-        nextScreen = const LoginView();
-      }
+      nextScreen = const LoginView();
     }
     
     if (!mounted) return; // Verificar antes de navegar
@@ -163,10 +151,14 @@ class _SplashViewState extends State<SplashView>
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.child_care,
-                          size: 80,
-                          color: Colors.blue.shade700,
+                        child: ClipOval(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -184,8 +176,8 @@ class _SplashViewState extends State<SplashView>
                         shaderCallback: (bounds) => LinearGradient(
                           colors: [Colors.white, Colors.white.withValues(alpha: 0.8)],
                         ).createShader(bounds),
-                        child: Text(
-                          'WasiApp',
+                        child: const Text(
+                          'WassiApp',
                           style: TextStyle(
                             fontSize: 42,
                             fontWeight: FontWeight.bold,
@@ -193,8 +185,8 @@ class _SplashViewState extends State<SplashView>
                             letterSpacing: 2,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                offset: const Offset(0, 3),
+                                color: Colors.black26,
+                                offset: Offset(0, 3),
                                 blurRadius: 6,
                               ),
                             ],

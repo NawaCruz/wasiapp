@@ -11,7 +11,6 @@ class AnemiaRiskInput {
   final String sexo;
   final double pesoKg;
   final double tallaM;
-  final double? hemoglobina;
   final bool palidez;
   final bool fatiga;
   final bool apetitoBajo;
@@ -24,7 +23,6 @@ class AnemiaRiskInput {
     required this.sexo,
     required this.pesoKg,
     required this.tallaM,
-    this.hemoglobina,
     required this.palidez,
     required this.fatiga,
     required this.apetitoBajo,
@@ -48,30 +46,12 @@ class AnemiaRiskResult {
 }
 
 class AnemiaRiskEngine {
-  /// Estima riesgo combinando hemoglobina, IMC, síntomas e imagen.
+  /// Estima riesgo combinando IMC, síntomas e imagen.
   static AnemiaRiskResult estimate(AnemiaRiskInput i) {
     double score = 0;
     final factores = <String>[];
 
-    // 1) Hemoglobina
-    if (i.hemoglobina != null) {
-      final umbral = _umbralHbOMS(i.edadMeses);
-      if (i.hemoglobina! < umbral - 1.0) {
-        score += 45;
-        factores.add('Hemoglobina baja (< ${umbral.toStringAsFixed(1)} g/dL)');
-      } else if (i.hemoglobina! < umbral) {
-        score += 30;
-        factores.add('Hemoglobina en el límite (≈ ${umbral.toStringAsFixed(1)} g/dL)');
-      } else {
-        score += 10;
-        factores.add('Hemoglobina en rango');
-      }
-    } else {
-      score += 5;
-      factores.add('Hemoglobina no disponible');
-    }
-
-    // 2) IMC
+    // 1) IMC
     final imc = _imc(i.pesoKg, i.tallaM);
     if (imc <= 14) {
       score += 20; factores.add('IMC bajo (${imc.toStringAsFixed(1)})');
@@ -108,24 +88,24 @@ class AnemiaRiskEngine {
   // ==============================
   
   // CONSTANTES ÚNICAS - Eliminadas las duplicadas
-  static const double H_MIN = 8.0;
-  static const double H_MAX = 22.0;
-  static const double S_MIN = 0.22;
-  static const double S_MAX = 0.55;
-  static const double V_MIN = 0.65;
-  static const double V_MAX = 0.95;
+  static const double hMin = 8.0;
+  static const double hMax = 22.0;
+  static const double sMin = 0.22;
+  static const double sMax = 0.55;
+  static const double vMin = 0.65;
+  static const double vMax = 0.95;
 
   // === CONSTANTES Y RANGOS HSV ===
-  static const _HSV_RANGES = {
+  static const hsvRanges = {
     'HEALTHY': {
-      'H_RANGE': [350.0, 15.0],  // rojo-rosado saludable
-      'S_RANGE': [0.45, 0.75],   // buena saturación
-      'V_RANGE': [0.65, 0.85]    // brillante pero no excesivo
+      'hRange': [350.0, 15.0],  // rojo-rosado saludable
+      'sRange': [0.45, 0.75],   // buena saturación
+      'vRange': [0.65, 0.85]    // brillante pero no excesivo
     },
     'PALE': {
-      'H_RANGE': [10.0, 25.0],   // más amarillento/pálido
-      'S_RANGE': [0.20, 0.40],   // menos saturado
-      'V_RANGE': [0.75, 0.95]    // más brillante/pálido
+      'hRange': [10.0, 25.0],   // más amarillento/pálido
+      'sRange': [0.20, 0.40],   // menos saturado
+      'vRange': [0.75, 0.95]    // más brillante/pálido
     }
   };
 
@@ -208,13 +188,13 @@ class AnemiaRiskEngine {
       
       // 3. Calcular similitud con perfiles de referencia
       final healthyScore = _calculateProfileSimilarity(
-        stats['H_median']!, stats['S_median']!, stats['V_median']!,
-        _HSV_RANGES['HEALTHY']!
+        stats['hMedian']!, stats['sMedian']!, stats['vMedian']!,
+        hsvRanges['HEALTHY']!
       );
       
       final paleScore = _calculateProfileSimilarity(
-        stats['H_median']!, stats['S_median']!, stats['V_median']!,
-        _HSV_RANGES['PALE']!
+        stats['hMedian']!, stats['sMedian']!, stats['vMedian']!,
+        hsvRanges['PALE']!
       );
 
       // 4. Normalizar scores
@@ -229,9 +209,9 @@ class AnemiaRiskEngine {
           "con_anemia": double.parse(normalizedPale.toStringAsFixed(3))
         },
         "hsv_stats": {
-          "H_mean": stats['H_median'],
-          "S_mean": stats['S_median'],
-          "V_mean": stats['V_median']
+          "H_mean": stats['hMedian'],
+          "S_mean": stats['sMedian'],
+          "V_mean": stats['vMedian']
         }
       };
     } catch (_) {
@@ -246,9 +226,9 @@ class AnemiaRiskEngine {
     final vValues = pixels.map((p) => p[2]).toList()..sort();
     
     return {
-      'H_median': _median(hValues),
-      'S_median': _median(sValues),
-      'V_median': _median(vValues)
+      'hMedian': _median(hValues),
+      'sMedian': _median(sValues),
+      'vMedian': _median(vValues)
     };
   }
 
@@ -259,9 +239,9 @@ class AnemiaRiskEngine {
     const wH = 0.5, wS = 0.3, wV = 0.2;
     
     // Calcular distancias normalizadas
-    final dH = _hueDistance(h, (profile['H_RANGE']![0] + profile['H_RANGE']![1]) / 2);
-    final dS = (s - (profile['S_RANGE']![0] + profile['S_RANGE']![1]) / 2).abs();
-    final dV = (v - (profile['V_RANGE']![0] + profile['V_RANGE']![1]) / 2).abs();
+    final dH = _hueDistance(h, (profile['hRange']![0] + profile['hRange']![1]) / 2);
+    final dS = (s - (profile['sRange']![0] + profile['sRange']![1]) / 2).abs();
+    final dV = (v - (profile['vRange']![0] + profile['vRange']![1]) / 2).abs();
     
     // Convertir distancia a similitud
     return exp(-(wH * dH * dH + wS * dS * dS + wV * dV * dV));
@@ -299,7 +279,7 @@ class AnemiaRiskEngine {
       int conjCount = 0, total = 0;
       double scoreHue = 0, scoreSat = 0, scoreVal = 0;
 
-      const H_C = 15.0, S_C = 0.35, V_C = 0.80;
+      const hC = 15.0, sC = 0.35, vC = 0.80;
 
       for (int y = 0; y < decoded.height; y += step) {
         for (int x = 0; x < decoded.width; x += step) {
@@ -312,15 +292,15 @@ class AnemiaRiskEngine {
           final hsv = _rgbToHsv(r, g, b);
           final h = hsv[0], s = hsv[1], v = hsv[2];
 
-          final bool isConj = (h >= H_MIN && h <= H_MAX) &&
-                              (s >= S_MIN && s <= S_MAX) &&
-                              (v >= V_MIN && v <= V_MAX);
+          final bool isConj = (h >= hMin && h <= hMax) &&
+                              (s >= sMin && s <= sMax) &&
+                              (v >= vMin && v <= vMax);
 
           if (isConj) {
             conjCount++;
-            final hDist = ((h - H_C).abs() / ((H_MAX - H_MIN) / 2)).clamp(0.0, 1.0);
-            final sDist = ((s - S_C).abs() / ((S_MAX - S_MIN) / 2)).clamp(0.0, 1.0);
-            final vDist = ((v - V_C).abs() / ((V_MAX - V_MIN) / 2)).clamp(0.0, 1.0);
+            final hDist = ((h - hC).abs() / ((hMax - hMin) / 2)).clamp(0.0, 1.0);
+            final sDist = ((s - sC).abs() / ((sMax - sMin) / 2)).clamp(0.0, 1.0);
+            final vDist = ((v - vC).abs() / ((vMax - vMin) / 2)).clamp(0.0, 1.0);
             scoreHue += (1.0 - hDist);
             scoreSat += (1.0 - sDist);
             scoreVal += (1.0 - vDist);
@@ -354,13 +334,5 @@ class AnemiaRiskEngine {
   static double _imc(double pesoKg, double tallaM) {
     if (tallaM <= 0) return 0;
     return pesoKg / (tallaM * tallaM);
-  }
-
-  static double _umbralHbOMS(int edadMeses) {
-    if (edadMeses < 6) return 10.5;
-    if (edadMeses <= 59) return 11.0;
-    if (edadMeses <= 132) return 11.5;
-    if (edadMeses <= 168) return 12.0;
-    return 12.0;
   }
 }

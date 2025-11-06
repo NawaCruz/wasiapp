@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../controllers/nino_controller.dart';
 import '../models/nino_model.dart';
 import '../utils/anemia_risk.dart';
+import '../widgets/custom_app_bar.dart';
 
 class AnemiaDiagnosticoView extends StatefulWidget {
   const AnemiaDiagnosticoView({super.key});
@@ -110,18 +111,20 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     
     if (x == null) return;
     
-    final f = File(x.path);
-    final score = AnemiaRiskEngine.imagePalenessFromFile(f);
+    // 🔹 Leer la foto y calcular score
+    final tempFile = File(x.path);
+    final score = AnemiaRiskEngine.imagePalenessFromFile(tempFile);
     
-    setState(() {
-      _image = f;
-      _imgScore = score;
-    });
-    
-    // Guardar la foto asociada al niño
     try {
+      // 🔹 Guardar la ruta de la foto directamente
+      setState(() {
+        _image = tempFile;
+        _imgScore = score;
+      });
+      
+      // 🔹 Guardar ruta en Firestore
       final ninoActualizado = _ninoSeleccionado!.copyWith(
-        fotoConjuntivaUrl: f.path,
+        fotoConjuntivaUrl: x.path, // ← Usar ruta original
       );
       
       if (!mounted) return;
@@ -135,7 +138,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       if (!mounted) return;
       
       if (exitoso) {
-        // Actualizar el niño seleccionado con los nuevos datos
         setState(() {
           _ninoSeleccionado = ninoActualizado;
         });
@@ -167,7 +169,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       sexo: _sexo,
       pesoKg: _peso,
       tallaM: _talla,
-      hemoglobina: null, // No necesitamos hemoglobina
       palidez: _palidez,
       fatiga: _fatiga,
       apetitoBajo: _apetitoBajo,
@@ -222,17 +223,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          'Diagnóstico de Anemia', 
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: isSmallScreen ? 18 : 20,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: 'Diagnóstico de Anemia',
         backgroundColor: Colors.red[600],
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(
