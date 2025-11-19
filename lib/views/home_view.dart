@@ -10,6 +10,7 @@ import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
 import '../utils/anemia_risk.dart';
 import 'login_view.dart';
+import 'nutritional_plan_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -150,36 +151,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
 
             // 1: Plan Nutricional
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.food_bank, size: 72, color: Colors.green),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Plan Nutricional',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Aquí irá la información y recomendaciones del plan nutricional.',
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Plan nutricional (en desarrollo)')),
-                        );
-                      },
-                      child: const Text('Ver Plan'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const NutritionalPlanView(),
 
             // 2: Evaluación
             Center(

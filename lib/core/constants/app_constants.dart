@@ -60,7 +60,7 @@ class MensajesValidacion {
   static const String clavesNoCoinciden = 'Las contraseñas no coinciden';
   static const String dniInvalido = 'El DNI debe tener exactamente 8 dígitos';
   static const String valorNumericoInvalido = 'Ingrese un número válido';
-  
+
   // Mensajes específicos para niños
   static const String nombreInvalido = 'Ingrese un nombre válido (solo letras)';
   static const String edadInvalida = 'La edad debe estar entre 0 y 72 meses';

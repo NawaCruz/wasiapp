@@ -16,7 +16,7 @@ class NinoModel {
   final String? clasificacionIMC;
   final DateTime fechaRegistro;
   final bool activo;
-  
+
   // Campos del cuestionario de salud
   final String? anemia;
   final String? alimentosHierro;
@@ -25,10 +25,10 @@ class NinoModel {
   final String? palidez;
   final String? disminucionRendimiento;
   final String? evaluacionAnemia;
-  
+
   // Campo para asociar con el usuario
   final String? usuarioId;
-  
+
   // Campo para la foto de la conjuntiva
   final String? fotoConjuntivaUrl;
 

@@ -149,14 +149,14 @@ class NinoController extends ChangeNotifier {
       );
 
       await NinoService.actualizarNino(ninoActualizado);
-      
+
       // Recargar según el contexto
       if (usuarioId != null) {
         await cargarNinosPorUsuario(usuarioId);
       } else {
         await cargarNinos();
       }
-      
+
       return true;
     } catch (e) {
       _setError('Error al actualizar registro: ${e.toString()}');
@@ -173,14 +173,14 @@ class NinoController extends ChangeNotifier {
       _clearError();
 
       await NinoService.eliminarNino(id);
-      
+
       // Recargar según el contexto
       if (usuarioId != null) {
         await cargarNinosPorUsuario(usuarioId);
       } else {
         await cargarNinos();
       }
-      
+
       return true;
     } catch (e) {
       _setError('Error al eliminar registro: ${e.toString()}');
