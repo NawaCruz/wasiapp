@@ -1,8 +1,10 @@
 // nutritional_plan_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:open_file/open_file.dart';
 import '../controllers/nino_controller.dart';
 import '../models/nino_model.dart';
+import '../services/pdf_generator_service.dart';
 
 class NutritionalPlanView extends StatefulWidget {
   const NutritionalPlanView({super.key});
@@ -13,6 +15,7 @@ class NutritionalPlanView extends StatefulWidget {
 
 class _NutritionalPlanViewState extends State<NutritionalPlanView> {
   NinoModel? _selectedChild;
+  bool _isGeneratingPDF = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
       body: Consumer<NinoController>(
         builder: (context, ninoController, child) {
           final ninos = ninoController.ninos;
-          
+
           if (ninos.isEmpty) {
             return _buildEmptyState();
           }
@@ -34,10 +37,10 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
             children: [
               // Selector de niño
               _buildChildSelector(ninos),
-              
+
               // Plan nutricional basado en riesgo
               Expanded(
-                child: _selectedChild != null 
+                child: _selectedChild != null
                     ? _buildNutritionalPlan(_selectedChild!)
                     : _buildSelectChildPrompt(),
               ),
@@ -137,7 +140,33 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
         children: [
           // Header informativo
           _buildPlanHeader(nino, riesgoAnemia),
-          const SizedBox(height: 24),
+          
+          // Botón de descarga PDF
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            child: ElevatedButton.icon(
+              onPressed: _isGeneratingPDF ? null : () => _downloadPlanAsPDF(nino),
+              icon: _isGeneratingPDF
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.download),
+              label: Text(
+                _isGeneratingPDF ? 'Generando PDF...' : 'Descargar Plan en PDF',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                disabledBackgroundColor: Colors.grey,
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 8),
           
           // Plan nutricional según riesgo
           _buildPlanByRisk(riesgoAnemia, nino),
@@ -152,6 +181,142 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadPlanAsPDF(NinoModel nino) async {
+    try {
+      setState(() {
+        _isGeneratingPDF = true;
+      });
+
+      // Obtener datos del plan según el riesgo
+      final planData = _getPlanDataForPDF(nino.evaluacionAnemia ?? 'Riesgo bajo de anemia');
+      
+      // Generar PDF
+      final pdfFile = await PdfGeneratorService.generateNutritionalPlanPDF(
+        childName: nino.nombreCompleto,
+        age: nino.edad.toString(),
+        riskLevel: nino.evaluacionAnemia ?? 'Riesgo bajo de anemia',
+        classification: nino.clasificacionIMC ?? 'Sin clasificación',
+        planType: planData['planType']![0],
+        immediateActions: planData['immediateActions']!,
+        dailyFoods: planData['dailyFoods']!,
+        menuExample: planData['menuExample']!,
+        supplements: planData['supplements']!,
+      );
+
+      // Abrir el PDF
+      await OpenFile.open(pdfFile.path);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('PDF generado exitosamente'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al generar PDF: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingPDF = false;
+        });
+      }
+    }
+  }
+
+  // Método para obtener datos del plan
+  Map<String, List<String>> _getPlanDataForPDF(String riesgoAnemia) {
+    if (riesgoAnemia.contains('Alta Probabilidad')) {
+      return {
+        'planType': ['Plan de Intervención - Prioridad Hierro'],
+        'immediateActions': [
+          'Consulta inmediata con pediatra para evaluación completa',
+          'Exámenes de hemoglobina y ferritina recomendados',
+          'Suplementación con hierro bajo supervisión médica',
+          'Seguimiento nutricional cada 15 días'
+        ],
+        'dailyFoods': [
+          '2 porciones de carne roja magra (res, hígado)',
+          '1 porción de legumbres (lentejas, frijoles)',
+          'Verduras de hoja verde en cada comida principal',
+          '1 fruta cítrica con cada comida para mejorar absorción',
+          'Evitar té, café o lácteos cerca de las comidas con hierro'
+        ],
+        'menuExample': [
+          'Desayuno: Avena con hígado picado + jugo de naranja natural',
+          'Almuerzo: Lentejas guisadas con carne molida + ensalada de espinacas',
+          'Cena: Pescado al horno con brócoli + kiwi',
+          'Snacks: Nueces, pasas, yogurt fortificado con hierro'
+        ],
+        'supplements': [
+          'Hierro quelado o sulfato ferroso (dosis según prescripción médica)',
+          'Vitamina C para mejorar la absorción del hierro',
+          'Complejo B complementario',
+          'Probióticos para mejorar salud intestinal'
+        ],
+      };
+    } else if (riesgoAnemia.contains('Riesgo moderado')) {
+      return {
+        'planType': ['Plan Preventivo - Fortalecimiento Nutricional'],
+        'immediateActions': [
+          'Control pediátrico para evaluación inicial',
+          'Monitoreo de signos de mejoría o empeoramiento',
+          'Implementar cambios dietéticos progresivos'
+        ],
+        'dailyFoods': [
+          '1 porción diaria de proteína animal (carne, pollo, pescado)',
+          'Legumbres 4-5 veces por semana en comidas principales',
+          'Verduras verdes en almuerzo y cena',
+          'Frutos secos como snacks saludables entre comidas',
+          'Limitar alimentos que inhiben absorción de hierro'
+        ],
+        'menuExample': [
+          'Desayuno: Huevos revueltos + pan integral + mandarina',
+          'Almuerzo: Pollo guisado con espinacas + lentejas',
+          'Cena: Atún con brócoli al vapor + fresas',
+          'Snacks: Almendras, yogurt natural, galletas integrales'
+        ],
+        'supplements': [
+          'Multivitamínico pediátrico si es recomendado por médico',
+          'Suplemento de hierro preventivo en temporada de crecimiento'
+        ],
+      };
+    } else {
+      return {
+        'planType': ['Plan de Mantenimiento - Salud Óptima'],
+        'immediateActions': [
+          'Mantener controles pediátricos regulares',
+          'Conservar hábitos alimentarios saludables',
+          'Promover actividad física y descanso adecuado'
+        ],
+        'dailyFoods': [
+          'Variedad de alimentos de todos los grupos diariamente',
+          'Proteínas: 2-3 porciones diarias variadas',
+          'Frutas y verduras de diferentes colores',
+          'Granos integrales y legumbres regularmente',
+          'Lácteos o alternativas fortificadas'
+        ],
+        'menuExample': [
+          'Desayuno: Cereal integral con leche + plátano + nueces',
+          'Almuerzo: Pescado a la plancha + arroz integral + ensalada mixta',
+          'Cena: Pollo al horno + quinoa + vegetales al vapor',
+          'Snacks: Frutas frescas, palitos de zanahoria, queso'
+        ],
+        'supplements': [],
+      };
+    }
   }
 
   Widget _buildPlanHeader(NinoModel nino, String riesgoAnemia) {
