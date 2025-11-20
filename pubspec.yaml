@@ -1,5 +1,5 @@
 name: wasiapp
-description: "A new Flutter project."
+description: "WassiApp - Aplicación para detección de anemia infantil"
 publish_to: 'none'
 version: 0.1.0
 
@@ -29,8 +29,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/labels.txt  # ← SOLO las etiquetas
+    - assets/logo.png    # ← Logo de la aplicación
+
+# Configuración del ícono de la aplicación
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"  # ← Coloca aquí tu logo
+  adaptive_icon_background: "#FFFFFF"  # Color de fondo (blanco)
+  adaptive_icon_foreground: "assets/logo.png"  # Logo para Android adaptivo

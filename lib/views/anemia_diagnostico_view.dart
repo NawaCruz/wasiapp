@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../controllers/nino_controller.dart';
 import '../models/nino_model.dart';
 import '../utils/anemia_risk.dart';
+import '../widgets/custom_app_bar.dart';
 
 class AnemiaDiagnosticoView extends StatefulWidget {
   const AnemiaDiagnosticoView({super.key});
@@ -110,19 +111,23 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     
     if (x == null) return;
     
-    final f = File(x.path);
-    final score = AnemiaRiskEngine.imagePalenessFromFile(f);
+    // 🔹 Leer la foto y calcular score
+    final tempFile = File(x.path);
+    final score = AnemiaRiskEngine.imagePalenessFromFile(tempFile);
     
-    setState(() {
-      _image = f;
-      _imgScore = score;
-    });
-    
-    // Guardar la foto asociada al niño
     try {
+      // 🔹 Guardar la ruta de la foto directamente
+      setState(() {
+        _image = tempFile;
+        _imgScore = score;
+      });
+      
+      // 🔹 Guardar ruta en Firestore
       final ninoActualizado = _ninoSeleccionado!.copyWith(
-        fotoConjuntivaUrl: f.path,
+        fotoConjuntivaUrl: x.path, // ← Usar ruta original
       );
+      
+      if (!mounted) return;
       
       final ninoController = context.read<NinoController>();
       final exitoso = await ninoController.actualizarNino(
@@ -130,8 +135,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         usuarioId: _ninoSeleccionado!.usuarioId,
       );
       
+      if (!mounted) return;
+      
       if (exitoso) {
-        // Actualizar el niño seleccionado con los nuevos datos
         setState(() {
           _ninoSeleccionado = ninoActualizado;
         });
@@ -144,6 +150,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al guardar la foto: $e'),
@@ -153,7 +160,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     }
   }
 
-  void _calcular() {
+  Future<void> _calcular() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
@@ -162,7 +169,6 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       sexo: _sexo,
       pesoKg: _peso,
       tallaM: _talla,
-      hemoglobina: null, // No necesitamos hemoglobina
       palidez: _palidez,
       fatiga: _fatiga,
       apetitoBajo: _apetitoBajo,
@@ -172,6 +178,41 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     );
     final r = AnemiaRiskEngine.estimate(input);
     setState(() => _resultado = r);
+
+    // Guardar el resultado del diagnóstico en el historial clínico del paciente
+    if (_ninoSeleccionado != null && mounted) {
+      try {
+        final ninoActualizado = _ninoSeleccionado!.copyWith(
+          diagnosticoAnemiaRiesgo: r.level.toString().split('.').last, // "alto", "medio", "bajo"
+          diagnosticoAnemiaScore: r.score,
+          diagnosticoAnemiaFecha: DateTime.now(),
+        );
+
+        if (!mounted) return;
+        final ninoController = context.read<NinoController>();
+        await ninoController.actualizarNino(ninoActualizado);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Diagnóstico guardado en el historial clínico'),
+              backgroundColor: Colors.green[600],
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al guardar diagnóstico: $e'),
+              backgroundColor: Colors.red[600],
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -182,17 +223,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          'Diagnóstico de Anemia', 
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: isSmallScreen ? 18 : 20,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: 'Diagnóstico de Anemia',
         backgroundColor: Colors.red[600],
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -213,7 +246,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -234,7 +267,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                           'Código: RF-05',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -312,7 +345,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       border: Border.all(color: Colors.green[300]!, width: 2),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.green.withOpacity(0.1),
+                                          color: Colors.green.withValues(alpha: 0.1),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -465,7 +498,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [Colors.blue[50]!, Colors.blue[100]!.withOpacity(0.3)],
+                                        colors: [Colors.blue[50]!, Colors.blue[100]!.withValues(alpha: 0.3)],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
@@ -473,7 +506,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       border: Border.all(color: Colors.blue[200]!, width: 1),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.blue.withOpacity(0.1),
+                                          color: Colors.blue.withValues(alpha: 0.1),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
                                         ),
@@ -488,7 +521,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             borderRadius: BorderRadius.circular(10),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.blue.withOpacity(0.3),
+                                                color: Colors.blue.withValues(alpha: 0.3),
                                                 blurRadius: 4,
                                                 offset: const Offset(0, 2),
                                               ),
@@ -540,7 +573,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                         border: Border.all(color: Colors.green[200]!, width: 1.5),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.green.withOpacity(0.08),
+                                            color: Colors.green.withValues(alpha: 0.08),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           ),
@@ -558,7 +591,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                   borderRadius: BorderRadius.circular(10),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.green.withOpacity(0.3),
+                                                      color: Colors.green.withValues(alpha: 0.3),
                                                       blurRadius: 6,
                                                       offset: const Offset(0, 2),
                                                     ),
@@ -586,7 +619,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                               border: Border.all(color: Colors.green[100]!),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black.withOpacity(0.05),
+                                                  color: Colors.black.withValues(alpha: 0.05),
                                                   blurRadius: 6,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -602,7 +635,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                         borderRadius: BorderRadius.circular(30),
                                                         boxShadow: [
                                                           BoxShadow(
-                                                            color: (_ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink).withOpacity(0.3),
+                                                            color: (_ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink).withValues(alpha: 0.3),
                                                             blurRadius: 12,
                                                             offset: const Offset(0, 4),
                                                           ),
@@ -666,7 +699,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                colors: [Colors.blue[50]!, Colors.blue[100]!.withOpacity(0.3)],
+                                                colors: [Colors.blue[50]!, Colors.blue[100]!.withValues(alpha: 0.3)],
                                                 begin: Alignment.centerLeft,
                                                 end: Alignment.centerRight,
                                               ),
@@ -674,7 +707,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                               border: Border.all(color: Colors.blue[200]!, width: 1),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.blue.withOpacity(0.1),
+                                                  color: Colors.blue.withValues(alpha: 0.1),
                                                   blurRadius: 6,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -917,7 +950,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             Text(
                                               'Score de palidez: ${(_imgScore! * 100).toStringAsFixed(1)}%',
                                               style: TextStyle(
-                                                color: _getIconColorByPalenessScore(_imgScore!).withOpacity(0.8),
+                                                color: _getIconColorByPalenessScore(_imgScore!).withValues(alpha: 0.8),
                                                 fontSize: 11,
                                               ),
                                             ),
@@ -959,7 +992,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.red.withOpacity(0.3),
+                                color: Colors.red.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -1052,7 +1085,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         border: Border.all(color: color[200]!, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1076,7 +1109,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withOpacity(0.3),
+                        color: color.withValues(alpha: 0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 3),
                       ),
@@ -1237,12 +1270,12 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1252,7 +1285,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -1298,7 +1331,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: color.withOpacity(0.3),
+                        color: color.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1458,7 +1491,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         border: Border.all(color: color[200]!, width: 1),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
