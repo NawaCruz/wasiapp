@@ -11,6 +11,7 @@ import '../controllers/nino_controller.dart';
 import '../utils/anemia_risk.dart';
 import 'login_view.dart';
 import 'nutritional_plan_view.dart';
+import 'progress_charts_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -92,6 +93,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       'Evaluación',
       'Diagnóstico',
       'Perfil',
+      'Progreso'
     ];
 
     return Scaffold(
@@ -183,6 +185,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
             ),
 
+            // 2: Gráficos de Progreso - NUEVA VISTA
+            const ProgressChartsView(),
+
             // 3: Anemia
             const AnemiaDiagnosticoView(),
 
@@ -206,6 +211,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Plan'),
           BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Registrar'),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Progreso'),
           BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
