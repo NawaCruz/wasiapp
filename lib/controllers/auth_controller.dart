@@ -19,9 +19,16 @@ class AuthController extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final isValid = await UsuarioService.verificarCredenciales(usuario, contrasena);
+      debugPrint('🔑 AUTH: Verificando credenciales para: $usuario');
+      
+      final isValid =
+          await UsuarioService.verificarCredenciales(usuario, contrasena);
+          
+      debugPrint('🔑 AUTH: Credenciales válidas: $isValid');
+      
       if (isValid) {
         _usuarioActual = await UsuarioService.buscarPorUsuario(usuario);
+        debugPrint('🔑 AUTH: Usuario cargado: ${_usuarioActual?.usuario} (ID: ${_usuarioActual?.id})');
         notifyListeners();
         return true;
       } else {
@@ -29,6 +36,7 @@ class AuthController extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      debugPrint('❌ AUTH: Error en login: $e');
       _setError('Error de conexión. Intente nuevamente.');
       return false;
     } finally {
@@ -118,7 +126,8 @@ class AuthController extends ChangeNotifier {
   }
 
   // Cambiar contraseña
-  Future<bool> cambiarContrasena(String contrasenaActual, String nuevaContrasena) async {
+  Future<bool> cambiarContrasena(
+      String contrasenaActual, String nuevaContrasena) async {
     if (_usuarioActual == null) return false;
 
     try {

@@ -30,18 +30,19 @@ class ResponsiveDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Determinar si es una pantalla pequeña
     final isSmallScreen = screenWidth < 600;
     final isMediumScreen = screenWidth >= 600 && screenWidth < 1024;
-    
+
     // Ajustar dimensiones según el tamaño de pantalla
-    final containerMaxWidth = maxWidth ?? (isSmallScreen 
-        ? screenWidth * 0.9 
-        : isMediumScreen 
-            ? screenWidth * 0.7 
-            : screenWidth * 0.5);
-            
+    final containerMaxWidth = maxWidth ??
+        (isSmallScreen
+            ? screenWidth * 0.9
+            : isMediumScreen
+                ? screenWidth * 0.7
+                : screenWidth * 0.5);
+
     final fontSize = isSmallScreen ? 12.0 : 14.0;
     final iconSize = isSmallScreen ? 16.0 : 20.0;
 
@@ -66,12 +67,12 @@ class ResponsiveDropdown<T> extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
             border: Border.all(
-              color: (primaryColor ?? Colors.green).shade200, 
+              color: (primaryColor ?? Colors.green).shade200,
               width: 1,
             ),
           ),
           child: DropdownButtonFormField<T>(
-            value: value,
+            initialValue: value,
             items: items,
             onChanged: onChanged,
             validator: validator,
@@ -88,7 +89,7 @@ class ResponsiveDropdown<T> extends StatelessWidget {
                 color: Colors.grey[500],
                 fontSize: fontSize * 0.9,
               ),
-              prefixIcon: prefixIcon != null 
+              prefixIcon: prefixIcon != null
                   ? _buildResponsivePrefixIcon(
                       prefixIcon!,
                       isSmallScreen,
@@ -112,14 +113,16 @@ class ResponsiveDropdown<T> extends StatelessWidget {
               fontSize: fontSize,
             ),
             icon: const SizedBox.shrink(), // Ocultar el icono por defecto
-            menuMaxHeight: screenHeight * 0.4, // Máximo 40% de la altura de pantalla
+            menuMaxHeight:
+                screenHeight * 0.4, // Máximo 40% de la altura de pantalla
           ),
         ),
       ),
     );
   }
 
-  Widget _buildResponsivePrefixIcon(Widget icon, bool isSmallScreen, MaterialColor primaryColor) {
+  Widget _buildResponsivePrefixIcon(
+      Widget icon, bool isSmallScreen, MaterialColor primaryColor) {
     return Container(
       margin: EdgeInsets.all(isSmallScreen ? 8 : 12),
       padding: EdgeInsets.all(isSmallScreen ? 6 : 10),
@@ -184,13 +187,13 @@ class ResponsivePatientSelector extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: isSmallScreen ? 16 : 20,
-                  backgroundColor: patient.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
+                  backgroundColor: patient.sexo == 'Masculino'
+                      ? Colors.blue.shade100
                       : Colors.pink.shade100,
                   child: Icon(
                     patient.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: patient.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
+                    color: patient.sexo == 'Masculino'
+                        ? Colors.blue.shade700
                         : Colors.pink.shade700,
                     size: isSmallScreen ? 16 : 20,
                   ),

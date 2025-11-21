@@ -55,7 +55,8 @@ class NotificationManager {
   }
 
   // Recordatorio de suplementos
-  Future<void> scheduleSupplementReminder(String childName, String supplement) async {
+  Future<void> scheduleSupplementReminder(
+      String childName, String supplement) async {
     await _notificationService.scheduleFoodPlanReminder(
       childName,
       const TimeOfDay24(8, 0, 0),

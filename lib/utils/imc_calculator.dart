@@ -26,7 +26,7 @@ class IMCCalculator {
   static String clasificarIMCNinos(double imc, int edad, String sexo) {
     // Esta es una clasificación simplificada
     // En un sistema real deberías usar las tablas de percentiles de la OMS
-    
+
     if (edad <= 2) {
       if (imc < 14) return 'Bajo peso';
       if (imc <= 18) return 'Peso normal';

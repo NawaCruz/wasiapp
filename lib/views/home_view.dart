@@ -28,21 +28,45 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
-    // Cargar datos iniciales por usuario
+
+    // Cargar datos iniciales - SIN AWAIT para no bloquear
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final ninoController = Provider.of<NinoController>(context, listen: false);
-      
+      _cargarDatosIniciales();
+    });
+  }
+
+  void _cargarDatosIniciales() async {
+    try {
+      final authController =
+          Provider.of<AuthController>(context, listen: false);
+      final ninoController =
+          Provider.of<NinoController>(context, listen: false);
+
       final usuarioId = authController.usuarioActual?.id;
       
-      if (usuarioId != null) {
+      debugPrint('═══════════════════════════════════');
+      debugPrint('🏠 HOME: Verificando usuario...');
+      debugPrint('🏠 HOME: Usuario: ${authController.usuarioActual?.usuario}');
+      debugPrint('🏠 HOME: ID: $usuarioId');
+      debugPrint('🏠 HOME: Logged in: ${authController.isLoggedIn}');
+      debugPrint('═══════════════════════════════════');
+
+      if (usuarioId != null && usuarioId.isNotEmpty) {
+        debugPrint('✅ HOME: Usuario válido - cargando datos...');
+        
+        // Ejecutar sin bloquear UI
         ninoController.cargarNinosPorUsuario(usuarioId);
         ninoController.cargarEstadisticasUsuario(usuarioId);
+        
       } else {
-        Navigator.pushReplacementNamed(context, '/login');
+        debugPrint('❌ HOME: Sin usuario - redirigiendo a login');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
       }
-    });
+    } catch (e) {
+      debugPrint('❌ HOME: Error crítico: $e');
+    }
   }
 
   @override
@@ -55,7 +79,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     final authController = Provider.of<AuthController>(context, listen: false);
     final ninoController = Provider.of<NinoController>(context, listen: false);
     final usuarioId = authController.usuarioActual?.id;
-    
+
     if (usuarioId != null) {
       await ninoController.cargarNinosPorUsuario(usuarioId);
       await ninoController.cargarEstadisticasUsuario(usuarioId);
@@ -66,7 +90,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     setState(() => _isLoadingRefresh = true);
     await _cargarDatos();
     setState(() => _isLoadingRefresh = false);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -103,13 +127,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ? [
                 IconButton(
                   onPressed: _isLoadingRefresh ? null : _refrescarDatos,
-                  icon: _isLoadingRefresh 
+                  icon: _isLoadingRefresh
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Icon(Icons.refresh),
@@ -159,11 +184,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.assignment_turned_in, size: 72, color: Colors.orange),
+                    const Icon(Icons.assignment_turned_in,
+                        size: 72, color: Colors.orange),
                     const SizedBox(height: 16),
                     const Text(
                       'Evaluación',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -198,25 +225,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         selectedItemColor: Colors.blue.shade700,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
+          debugPrint('🔘 HOME: Navegando a índice $index');
           if (index == 2) {
+            // Botón Registrar - va a otra vista
             Navigator.of(context).pushNamed('/registro_flow');
             return;
           }
-          setState(() => _selectedIndex = index);
+          setState(() {
+            _selectedIndex = index;
+            debugPrint('✅ HOME: Índice cambiado a $_selectedIndex');
+          });
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Plan'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Registrar'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Progreso'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle), label: 'Registrar'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.analytics), label: 'Progreso'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
         type: BottomNavigationBarType.fixed,
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              onPressed: () => Navigator.of(context).pushNamed('/registro_flow'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/registro_flow'),
               backgroundColor: Colors.blue.shade700,
               child: const Icon(Icons.add, color: Colors.white),
             )
@@ -225,10 +261,59 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   // DISEÑO SIMPLIFICADO DEL HOME
-  Widget _buildHomeContent(AuthController authController, NinoController ninoController) {
-    if (ninoController.isLoading && ninoController.ninos.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+  Widget _buildHomeContent(
+      AuthController authController, NinoController ninoController) {
+    // Mostrar error si existe
+    if (ninoController.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar datos',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                ninoController.errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ninoController.clearError();
+                  _cargarDatos();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
+
+    // NO MOSTRAR LOADING - Mostrar contenido vacío inmediatamente
+    // El loading se muestra solo si hay error
 
     return RefreshIndicator(
       onRefresh: _refrescarDatos,
@@ -272,7 +357,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: Icon(
               Icons.person,
               color: Colors.white,
@@ -296,7 +381,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   'Control nutricional infantil',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -310,7 +395,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   // Estadísticas más compactas
   Widget _buildCompactStats(NinoController ninoController) {
     final stats = ninoController.estadisticas;
-    
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -354,7 +439,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSimpleStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSimpleStatItem(
+      String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Column(
         children: [
@@ -408,7 +494,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 8),
-            
             if (ninos.isEmpty)
               _buildEmptyState()
             else
@@ -424,14 +509,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: nino.sexo == 'Masculino' 
-            ? Colors.blue.shade100 
+        backgroundColor: nino.sexo == 'Masculino'
+            ? Colors.blue.shade100
             : Colors.pink.shade100,
         radius: 20,
         child: Icon(
           nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-          color: nino.sexo == 'Masculino' 
-              ? Colors.blue.shade700 
+          color: nino.sexo == 'Masculino'
+              ? Colors.blue.shade700
               : Colors.pink.shade700,
           size: 20,
         ),
@@ -516,10 +601,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildHelpSection('🏠 Inicio', 'Visualiza tus estadísticas y registros recientes'),
-              _buildHelpSection('➕ Registrar', 'Agrega un nuevo niño al sistema'),
-              _buildHelpSection('👤 Perfil', 'Gestiona tu información personal'),
-              _buildHelpSection('🔄 Actualizar', 'Desliza hacia abajo o toca el ícono de actualizar'),
+              _buildHelpSection('🏠 Inicio',
+                  'Visualiza tus estadísticas y registros recientes'),
+              _buildHelpSection(
+                  '➕ Registrar', 'Agrega un nuevo niño al sistema'),
+              _buildHelpSection(
+                  '👤 Perfil', 'Gestiona tu información personal'),
+              _buildHelpSection('🔄 Actualizar',
+                  'Desliza hacia abajo o toca el ícono de actualizar'),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -601,13 +690,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
+                  backgroundColor: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade100
                       : Colors.pink.shade100,
                   child: Icon(
                     nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: nino.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
+                    color: nino.sexo == 'Masculino'
+                        ? Colors.blue.shade700
                         : Colors.pink.shade700,
                   ),
                 ),
@@ -639,9 +728,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            
+
             const Divider(height: 24),
-            
+
             // Información básica
             Expanded(
               child: ListView(
@@ -651,18 +740,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   _buildDetailRow('Peso', '${nino.peso} kg'),
                   _buildDetailRow('Talla', '${nino.talla} cm'),
                   if (nino.clasificacionIMC != null)
-                    _buildDetailRow('IMC', nino.clasificacionIMC!, 
+                    _buildDetailRow('IMC', nino.clasificacionIMC!,
                         color: _getIMCTextColor(nino.clasificacionIMC!)),
-                  
+
                   // Historial Clínico - Foto de Conjuntiva
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 8),
-                  
+
                   // Título de la sección
                   Row(
                     children: [
-                      Icon(Icons.medical_information, color: Colors.blue.shade700, size: 18),
+                      Icon(Icons.medical_information,
+                          color: Colors.blue.shade700, size: 18),
                       const SizedBox(width: 8),
                       Text(
                         'Historial Clínico',
@@ -674,21 +764,23 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Contenedor de la foto o mensaje para tomar foto
-                  if (nino.fotoConjuntivaUrl != null && nino.fotoConjuntivaUrl!.isNotEmpty) ...[
+                  if (nino.fotoConjuntivaUrl != null &&
+                      nino.fotoConjuntivaUrl!.isNotEmpty) ...[
                     // Contenedor de la foto
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200, width: 2),
+                        border:
+                            Border.all(color: Colors.blue.shade200, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -700,7 +792,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           // Header
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
                             decoration: BoxDecoration(
                               color: Colors.blue.shade50,
                               borderRadius: const BorderRadius.only(
@@ -710,7 +803,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.camera_alt, size: 14, color: Colors.blue.shade700),
+                                Icon(Icons.camera_alt,
+                                    size: 14, color: Colors.blue.shade700),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Foto de Conjuntiva',
@@ -723,7 +817,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          
+
                           // Foto
                           Padding(
                             padding: const EdgeInsets.all(10),
@@ -743,13 +837,18 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                   errorBuilder: (context, error, stackTrace) {
                                     return Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.image_not_supported, size: 40, color: Colors.grey[400]),
+                                          Icon(Icons.image_not_supported,
+                                              size: 40,
+                                              color: Colors.grey[400]),
                                           const SizedBox(height: 6),
                                           Text(
                                             'Imagen no disponible',
-                                            style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                                            style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 11),
                                           ),
                                         ],
                                       ),
@@ -759,7 +858,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          
+
                           // Footer
                           Container(
                             width: double.infinity,
@@ -773,7 +872,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.info_outline, size: 14, color: Colors.green.shade700),
+                                Icon(Icons.info_outline,
+                                    size: 14, color: Colors.green.shade700),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
@@ -798,11 +898,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color: Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.purple.shade200, width: 2, style: BorderStyle.solid),
+                        border: Border.all(
+                            color: Colors.purple.shade200,
+                            width: 2,
+                            style: BorderStyle.solid),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.add_a_photo, size: 48, color: Colors.purple.shade300),
+                          Icon(Icons.add_a_photo,
+                              size: 48, color: Colors.purple.shade300),
                           const SizedBox(height: 12),
                           Text(
                             'Sin foto de conjuntiva',
@@ -816,7 +920,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       ),
                     ),
                   ],
-                  
+
                   // Sección: Diagnóstico de Anemia
                   const SizedBox(height: 16),
                   if (nino.diagnosticoAnemiaRiesgo != null) ...[
@@ -825,10 +929,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.5), width: 2),
+                        border: Border.all(
+                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                .withValues(alpha: 0.5),
+                            width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.1),
+                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                .withValues(alpha: 0.1),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -840,9 +948,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           // Header
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
                             decoration: BoxDecoration(
-                              color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!).withOpacity(0.1),
+                              color:
+                                  _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                      .withValues(alpha: 0.1),
                               borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(10),
                                 topRight: Radius.circular(10),
@@ -850,20 +961,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.health_and_safety, size: 14, color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)),
+                                Icon(Icons.health_and_safety,
+                                    size: 14,
+                                    color: _getRiskColor(
+                                        nino.diagnosticoAnemiaRiesgo!)),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Diagnóstico de Anemia',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                    color: _getRiskColor(
+                                        nino.diagnosticoAnemiaRiesgo!),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
+
                           // Contenido
                           Padding(
                             padding: const EdgeInsets.all(12),
@@ -872,12 +987,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               children: [
                                 // Badge de riesgo
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!),
+                                        color: _getRiskColor(
+                                            nino.diagnosticoAnemiaRiesgo!),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
@@ -900,14 +1018,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                       ),
                                   ],
                                 ),
-                                
+
                                 const SizedBox(height: 8),
-                                
+
                                 // Fecha del diagnóstico
                                 if (nino.diagnosticoAnemiaFecha != null)
                                   Row(
                                     children: [
-                                      Icon(Icons.calendar_today, size: 12, color: Colors.grey[600]),
+                                      Icon(Icons.calendar_today,
+                                          size: 12, color: Colors.grey[600]),
                                       const SizedBox(width: 4),
                                       Text(
                                         'Fecha: ${DateFormat('dd/MM/yyyy').format(nino.diagnosticoAnemiaFecha!)}',
@@ -936,7 +1055,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, size: 20, color: Colors.grey.shade600),
+                          Icon(Icons.info_outline,
+                              size: 20, color: Colors.grey.shade600),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -954,7 +1074,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            
+
             // Botones
             const SizedBox(height: 16),
             Row(
@@ -966,7 +1086,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     _editarNino(nino);
                   },
                   icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                  label: Text('Editar', style: TextStyle(color: Colors.blue.shade700)),
+                  label: Text('Editar',
+                      style: TextStyle(color: Colors.blue.shade700)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -1076,34 +1197,42 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   color: Colors.white,
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Información
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildProfileField('Usuario', usuarioName, Icons.account_circle),
+                      _buildProfileField(
+                          'Usuario', usuarioName, Icons.account_circle),
                       const SizedBox(height: 12),
-                      _buildProfileField('Nombres', nombre.isNotEmpty ? nombre : 'No especificado', Icons.person),
+                      _buildProfileField(
+                          'Nombres',
+                          nombre.isNotEmpty ? nombre : 'No especificado',
+                          Icons.person),
                       const SizedBox(height: 12),
-                      _buildProfileField('Apellidos', apellido.isNotEmpty ? apellido : 'No especificado', Icons.person_outline),
+                      _buildProfileField(
+                          'Apellidos',
+                          apellido.isNotEmpty ? apellido : 'No especificado',
+                          Icons.person_outline),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Botón logout
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _handleLogout,
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
+                  label: const Text('Cerrar Sesión',
+                      style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.all(16),
@@ -1199,13 +1328,13 @@ class _AllRegistrosView extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: nino.sexo == 'Masculino' 
-                    ? Colors.blue.shade100 
+                backgroundColor: nino.sexo == 'Masculino'
+                    ? Colors.blue.shade100
                     : Colors.pink.shade100,
                 child: Icon(
                   nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                  color: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade700 
+                  color: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade700
                       : Colors.pink.shade700,
                 ),
               ),

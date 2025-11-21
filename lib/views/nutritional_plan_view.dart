@@ -53,13 +53,13 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
   Widget _buildChildSelector(List<NinoModel> ninos) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.green.shade50,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -67,47 +67,143 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Seleccionar Niño:',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<NinoModel>(
-            value: _selectedChild,
-            decoration: InputDecoration(
-              hintText: 'Selecciona un niño',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            items: ninos.map((nino) {
-              return DropdownMenuItem<NinoModel>(
-                value: nino,
-                child: Row(
-                  children: [
-                    Icon(
-                      nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                      color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      nino.nombreCompleto,
-                      style: const TextStyle(fontSize: 14),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade700,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-              );
-            }).toList(),
-            onChanged: (nino) {
-              setState(() {
-                _selectedChild = nino;
-              });
-            },
+                child: const Icon(
+                  Icons.restaurant_menu,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Plan Personalizado',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
+                      ),
+                    ),
+                    Text(
+                      'Selecciona el niño para ver su plan',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF558B2F),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.green.shade200,
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: DropdownButtonFormField<NinoModel>(
+              initialValue: _selectedChild,
+              decoration: InputDecoration(
+                hintText: '👶 Selecciona un niño',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 15,
+                ),
+                prefixIcon: Icon(
+                  Icons.child_care,
+                  color: Colors.green.shade600,
+                  size: 24,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+              ),
+              dropdownColor: Colors.white,
+              items: ninos.map((nino) {
+                return DropdownMenuItem<NinoModel>(
+                  value: nino,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: nino.sexo == 'Masculino'
+                              ? Colors.blue.shade50
+                              : Colors.pink.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                          color: nino.sexo == 'Masculino'
+                              ? Colors.blue.shade700
+                              : Colors.pink.shade700,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              nino.nombreCompleto,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              '${nino.edad} años',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (nino) {
+                setState(() {
+                  _selectedChild = nino;
+                });
+              },
+            ),
           ),
         ],
       ),
@@ -116,71 +212,256 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
   Widget _buildSelectChildPrompt() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.child_care, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          const Text(
-            'Selecciona un niño para ver su plan nutricional',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+      child: Container(
+        margin: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.green.shade50,
+              Colors.white,
+            ],
           ),
-        ],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.green.shade100,
+                    Colors.green.shade50,
+                  ],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.restaurant_menu_rounded,
+                size: 80,
+                color: Colors.green.shade700,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '🍎 Plan Nutricional',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green.shade800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Selecciona un niño arriba para ver\nsu plan nutricional personalizado',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.green.shade200,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.green.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Basado en el diagnóstico de anemia',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildNutritionalPlan(NinoModel nino) {
-    final riesgoAnemia = nino.evaluacionAnemia ?? 'Riesgo bajo de anemia';
-    
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header informativo
-          _buildPlanHeader(nino, riesgoAnemia),
-          
-          // Botón de descarga PDF
-          Container(
+    try {
+      final riesgoAnemia = nino.evaluacionAnemia ?? 'Riesgo bajo de anemia';
+      
+      debugPrint('🍎 DEBUG Plan: Construyendo plan para ${nino.nombreCompleto}');
+      debugPrint('🍎 DEBUG Plan: Riesgo anemia: $riesgoAnemia');
+      debugPrint('🍎 DEBUG Plan: Diagnostico riesgo: ${nino.diagnosticoAnemiaRiesgo}');
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header informativo
+            _buildPlanHeader(nino, riesgoAnemia),
+
+            // Botón de descarga PDF
+            Container(
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(vertical: 16),
+            margin: const EdgeInsets.only(bottom: 24),
+            height: 60,
+            decoration: BoxDecoration(
+              gradient: _isGeneratingPDF
+                  ? LinearGradient(
+                      colors: [
+                        Colors.grey.shade400,
+                        Colors.grey.shade500,
+                      ],
+                    )
+                  : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.green.shade600,
+                        Colors.green.shade700,
+                        Colors.green.shade800,
+                      ],
+                    ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: _isGeneratingPDF
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.green.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
+                        spreadRadius: 1,
+                      ),
+                    ],
+            ),
             child: ElevatedButton.icon(
-              onPressed: _isGeneratingPDF ? null : () => _downloadPlanAsPDF(nino),
+              onPressed:
+                  _isGeneratingPDF ? null : () => _downloadPlanAsPDF(nino),
               icon: _isGeneratingPDF
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
                     )
-                  : const Icon(Icons.download),
+                  : const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      size: 26,
+                    ),
               label: Text(
-                _isGeneratingPDF ? 'Generando PDF...' : 'Descargar Plan en PDF',
+                _isGeneratingPDF
+                    ? 'Generando PDF...'
+                    : '📥 Descargar Plan en PDF',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Colors.transparent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                disabledBackgroundColor: Colors.grey,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 24,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Plan nutricional según riesgo
           _buildPlanByRisk(riesgoAnemia, nino),
           const SizedBox(height: 24),
-          
+
           // Recomendaciones generales
           _buildGeneralRecommendations(),
           const SizedBox(height: 24),
-          
+
           // Alimentos ricos en hierro
           _buildIronRichFoods(),
         ],
       ),
     );
+    } catch (e, stackTrace) {
+      debugPrint('❌ ERROR en _buildNutritionalPlan: $e');
+      debugPrint('❌ Stack trace: $stackTrace');
+      return Center(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.red.shade200),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline, color: Colors.red.shade700, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar el plan nutricional',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                e.toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red.shade600),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _downloadPlanAsPDF(NinoModel nino) async {
@@ -190,8 +471,9 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
       });
 
       // Obtener datos del plan según el riesgo
-      final planData = _getPlanDataForPDF(nino.evaluacionAnemia ?? 'Riesgo bajo de anemia');
-      
+      final planData =
+          _getPlanDataForPDF(nino.evaluacionAnemia ?? 'Riesgo bajo de anemia');
+
       // Generar PDF
       final pdfFile = await PdfGeneratorService.generateNutritionalPlanPDF(
         childName: nino.nombreCompleto,
@@ -321,67 +603,187 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
   Widget _buildPlanHeader(NinoModel nino, String riesgoAnemia) {
     Color riskColor = _getRiskColor(riesgoAnemia);
-    
+    IconData riskIcon = _getRiskIcon(riesgoAnemia);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [riskColor.withOpacity(0.1), riskColor.withOpacity(0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            riskColor.withValues(alpha: 0.15),
+            riskColor.withValues(alpha: 0.05),
+            Colors.white,
+          ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: riskColor.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: riskColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: riskColor.withValues(alpha: 0.15),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+            spreadRadius: 1,
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: nino.sexo == 'Masculino' ? Colors.blue.shade100 : Colors.pink.shade100,
-                child: Icon(
-                  nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                  color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
-                ),
+          // Decoración de fondo
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: riskColor.withValues(alpha: 0.05),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      nino.nombreCompleto,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            nino.sexo == 'Masculino'
+                                ? Colors.blue.shade400
+                                : Colors.pink.shade400,
+                            nino.sexo == 'Masculino'
+                                ? Colors.blue.shade600
+                                : Colors.pink.shade600,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (nino.sexo == 'Masculino'
+                                    ? Colors.blue
+                                    : Colors.pink)
+                                .withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
-                    Text(
-                      '${nino.edad} años • ${nino.clasificacionIMC ?? "Sin clasificación"}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            nino.nombreCompleto,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20),
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.cake_outlined,
+                                size: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${nino.edad} años',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Icon(
+                                Icons.monitor_weight_outlined,
+                                size: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  nino.clasificacionIMC ?? "Sin clasificación",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: riskColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              riesgoAnemia,
-              style: TextStyle(
-                color: riskColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        riskColor.withValues(alpha: 0.25),
+                        riskColor.withValues(alpha: 0.15),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: riskColor.withValues(alpha: 0.4),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        riskIcon,
+                        color: riskColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          riesgoAnemia,
+                          style: TextStyle(
+                            color: riskColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -389,12 +791,28 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
     );
   }
 
+  IconData _getRiskIcon(String riesgoAnemia) {
+    final riesgoLower = riesgoAnemia.toLowerCase();
+    if (riesgoLower.contains('alta') || riesgoLower.contains('alto')) {
+      return Icons.warning_rounded;
+    } else if (riesgoLower.contains('moderado') || riesgoLower.contains('media') || riesgoLower.contains('medio')) {
+      return Icons.info_rounded;
+    } else {
+      return Icons.check_circle_rounded;
+    }
+  }
+
   Widget _buildPlanByRisk(String riesgoAnemia, NinoModel nino) {
-    if (riesgoAnemia.contains('Alta Probabilidad')) {
+    debugPrint('🔍 DEBUG: Evaluando riesgo: "$riesgoAnemia"');
+    final riesgoLower = riesgoAnemia.toLowerCase();
+    if (riesgoLower.contains('alta') || riesgoLower.contains('alto')) {
+      debugPrint('✅ Mostrando plan de ALTO riesgo');
       return _buildHighRiskPlan(nino);
-    } else if (riesgoAnemia.contains('Riesgo moderado')) {
+    } else if (riesgoLower.contains('moderado') || riesgoLower.contains('media') || riesgoLower.contains('medio')) {
+      debugPrint('✅ Mostrando plan de riesgo MODERADO');
       return _buildMediumRiskPlan(nino);
     } else {
+      debugPrint('✅ Mostrando plan de riesgo BAJO');
       return _buildLowRiskPlan(nino);
     }
   }
@@ -550,40 +968,74 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
     required IconData icon,
     required Widget content,
   }) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            color.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [
+                        color.withValues(alpha: 0.15),
+                        color.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 28,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: color,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             content,
           ],
         ),
@@ -592,6 +1044,8 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
   }
 
   Widget _buildPlanSection(String title, List<String> items) {
+    final sectionColor = Colors.green.shade700;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -599,64 +1053,167 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.blueGrey,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: sectionColor,
+              letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: 8),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('• ', style: TextStyle(fontSize: 16)),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: const TextStyle(fontSize: 14, height: 1.4),
+          const SizedBox(height: 12),
+          ...items.asMap().entries.map((entry) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    width: 1,
                   ),
                 ),
-              ],
-            ),
-          )),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.withValues(alpha: 0.2),
+                            Colors.green.withValues(alpha: 0.1),
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.green.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${entry.key + 1}',
+                          style: TextStyle(
+                            color: sectionColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          color: Colors.grey.shade800,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
         ],
       ),
     );
   }
 
   Widget _buildGeneralRecommendations() {
-    return Card(
-      elevation: 2,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue.shade50,
+            Colors.white,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.blue.shade200,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '📋 Recomendaciones Generales',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.blue.shade400,
+                        Colors.blue.shade600,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.lightbulb_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Recomendaciones Generales',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             _buildRecommendationItem(
-              'Comer en horarios regulares',
-              'Mantener 3 comidas principales y 2 snacks',
+              Icons.schedule_rounded,
+              'Horarios regulares',
+              'Mantener 3 comidas principales y 2 snacks saludables',
+              Colors.blue,
             ),
             _buildRecommendationItem(
+              Icons.water_drop_rounded,
               'Hidratación adecuada',
               '6-8 vasos de agua al día, evitar bebidas azucaradas',
+              Colors.lightBlue,
             ),
             _buildRecommendationItem(
-              'Comer despacio y masticar bien',
-              'Facilita la digestión y absorción de nutrientes',
+              Icons.restaurant_rounded,
+              'Comer despacio',
+              'Masticar bien facilita la digestión y absorción de nutrientes',
+              Colors.cyan,
             ),
             _buildRecommendationItem(
+              Icons.family_restroom_rounded,
               'Comer en familia',
-              'Fomenta hábitos saludables y ambiente positivo',
+              'Fomenta hábitos saludables y un ambiente positivo',
+              Colors.blue,
             ),
           ],
         ),
@@ -665,44 +1222,123 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
   }
 
   Widget _buildIronRichFoods() {
-    return Card(
-      elevation: 2,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.orange.shade50,
+            Colors.white,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.orange.shade200,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '🥩 Alimentos Ricos en Hierro',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
               children: [
-                _buildFoodChip('Hígado', Colors.red),
-                _buildFoodChip('Carne roja', Colors.red),
-                _buildFoodChip('Pollo', Colors.orange),
-                _buildFoodChip('Pescado', Colors.blue),
-                _buildFoodChip('Lentejas', Colors.brown),
-                _buildFoodChip('Espinacas', Colors.green),
-                _buildFoodChip('Frijoles', Colors.brown),
-                _buildFoodChip('Nueces', Colors.amber),
-                _buildFoodChip('Pasas', Colors.purple),
-                _buildFoodChip('Yema de huevo', Colors.yellow),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.orange.shade400,
+                        Colors.deepOrange.shade600,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Alimentos Ricos en Hierro',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade900,
+                    letterSpacing: 0.3,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            const Text(
-              '💡 Tip: Combina con vitamina C (cítricos) para mejor absorción',
-              style: TextStyle(
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _buildFoodChip('🥩 Hígado', Colors.red),
+                _buildFoodChip('🍖 Carne roja', Colors.red.shade700),
+                _buildFoodChip('🍗 Pollo', Colors.orange),
+                _buildFoodChip('🐟 Pescado', Colors.blue),
+                _buildFoodChip('🫘 Lentejas', Colors.brown),
+                _buildFoodChip('🥬 Espinacas', Colors.green),
+                _buildFoodChip('🌰 Frijoles', Colors.brown.shade700),
+                _buildFoodChip('🥜 Nueces', Colors.amber.shade800),
+                _buildFoodChip('🍇 Pasas', Colors.purple),
+                _buildFoodChip('🥚 Huevo', Colors.amber),
+                _buildFoodChip('🍞 Pan integral', Colors.brown.shade400),
+                _buildFoodChip('🌿 Brócoli', Colors.green.shade700),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.amber.shade300,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.tips_and_updates_rounded,
+                    color: Colors.amber.shade700,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Combina con vitamina C (cítricos) para mejorar la absorción de hierro hasta un 300%',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.amber.shade900,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -711,29 +1347,70 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
     );
   }
 
-  Widget _buildRecommendationItem(String title, String description) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+  Widget _buildRecommendationItem(
+    IconData icon,
+    String title,
+    String description,
+    Color color,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 16),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.grey.shade900,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: Colors.grey.shade600,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -745,42 +1422,186 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
   }
 
   Widget _buildFoodChip(String food, Color color) {
-    return Chip(
-      label: Text(
-        food,
-        style: const TextStyle(fontSize: 12),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
       ),
-      backgroundColor: color.withOpacity(0.1),
-      labelStyle: TextStyle(color: color),
-      side: BorderSide(color: color.withOpacity(0.3)),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.15),
+            color.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        food,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: color,
+          letterSpacing: 0.3,
+        ),
+      ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.child_care, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          const Text(
-            'No hay niños registrados',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+      child: Container(
+        margin: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(50),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.green.shade50,
+              Colors.white,
+              Colors.green.shade50,
+            ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Registra un niño para ver su plan nutricional',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: Colors.green.shade200,
+            width: 2,
           ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withValues(alpha: 0.15),
+              blurRadius: 25,
+              offset: const Offset(0, 10),
+              spreadRadius: 3,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.green.shade100,
+                    Colors.green.shade200,
+                  ],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withValues(alpha: 0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.no_food_rounded,
+                size: 90,
+                color: Colors.green.shade800,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              '¡Sin Planes Disponibles!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green.shade900,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No hay niños registrados en el sistema',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Registra un niño primero para crear\nplanes nutricionales personalizados',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.green.shade500,
+                    Colors.green.shade700,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.add_circle_outline,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Ve a "Inicio" para registrar',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Color _getRiskColor(String riesgoAnemia) {
-    if (riesgoAnemia.contains('Alta Probabilidad')) {
+    final riesgoLower = riesgoAnemia.toLowerCase();
+    if (riesgoLower.contains('alta') || riesgoLower.contains('alto')) {
       return Colors.red;
-    } else if (riesgoAnemia.contains('Riesgo moderado')) {
+    } else if (riesgoLower.contains('moderado') || riesgoLower.contains('media') || riesgoLower.contains('medio')) {
       return Colors.orange;
     } else {
       return Colors.green;

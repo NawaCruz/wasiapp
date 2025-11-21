@@ -12,12 +12,13 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMixin {
+class _LoginViewState extends State<LoginView>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -29,7 +30,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -37,7 +38,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -45,7 +46,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
       parent: _animationController,
       curve: Curves.easeOutBack,
     ));
-    
+
     _animationController.forward();
   }
 
@@ -61,15 +62,25 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
     if (!_formKey.currentState!.validate()) return;
 
     final authController = Provider.of<AuthController>(context, listen: false);
+    
+    debugPrint('🔐 LOGIN: Intentando login con usuario: ${_emailController.text.trim()}');
+    
     final success = await authController.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
+    
+    debugPrint('🔐 LOGIN: Resultado: ${success ? "ÉXITO" : "FALLO"}');
+    if (success) {
+      debugPrint('🔐 LOGIN: Usuario autenticado: ${authController.usuarioActual?.usuario}');
+      debugPrint('🔐 LOGIN: Usuario ID: ${authController.usuarioActual?.id}');
+    }
 
     if (success && mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const HomeView(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const HomeView(),
           transitionDuration: const Duration(milliseconds: 500),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
@@ -142,7 +153,8 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
 
                                       // Mostrar error si existe
                                       if (authController.errorMessage != null)
-                                        _buildErrorMessage(authController.errorMessage!),
+                                        _buildErrorMessage(
+                                            authController.errorMessage!),
 
                                       // Botón de login
                                       _buildLoginButton(authController),
@@ -151,15 +163,21 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                       // Divider
                                       Row(
                                         children: [
-                                          Expanded(child: Divider(color: Colors.grey.shade300)),
+                                          Expanded(
+                                              child: Divider(
+                                                  color: Colors.grey.shade300)),
                                           Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16),
                                             child: Text(
                                               'o',
-                                              style: TextStyle(color: Colors.grey.shade600),
+                                              style: TextStyle(
+                                                  color: Colors.grey.shade600),
                                             ),
                                           ),
-                                          Expanded(child: Divider(color: Colors.grey.shade300)),
+                                          Expanded(
+                                              child: Divider(
+                                                  color: Colors.grey.shade300)),
                                         ],
                                       ),
                                       const SizedBox(height: 16),
@@ -170,9 +188,9 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                   ),
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 32),
-                              
+
                               // Footer
                               _buildFooter(),
                             ],
@@ -426,9 +444,11 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
           authController.clearError();
           Navigator.of(context).push(
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => const CreateUserView(),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const CreateUserView(),
               transitionDuration: const Duration(milliseconds: 300),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return SlideTransition(
                   position: Tween<Offset>(
                     begin: const Offset(0.0, 1.0),

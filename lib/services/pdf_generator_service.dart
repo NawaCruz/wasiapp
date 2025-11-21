@@ -30,7 +30,8 @@ class PdfGeneratorService {
           pw.SizedBox(height: 20),
           _buildRiskSection(riskLevel, planType),
           pw.SizedBox(height: 15),
-          _buildPlanSections(immediateActions, dailyFoods, menuExample, supplements),
+          _buildPlanSections(
+              immediateActions, dailyFoods, menuExample, supplements),
           pw.SizedBox(height: 20),
           _buildFooter(),
         ],
@@ -47,7 +48,7 @@ class PdfGeneratorService {
     String classification,
   ) {
     final riskColor = _getRiskColor(riskLevel);
-    
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -156,7 +157,7 @@ class PdfGeneratorService {
 
   static pw.Widget _buildRiskSection(String riskLevel, String planType) {
     final riskColor = _getRiskColor(riskLevel);
-    
+
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.all(15),
@@ -200,14 +201,10 @@ class PdfGeneratorService {
       children: [
         if (immediateActions.isNotEmpty)
           _buildSection('🚨 Acciones Inmediatas', immediateActions),
-        
         _buildSection('🍽️ Alimentación Diaria Recomendada', dailyFoods),
-        
         _buildSection('📅 Menú de Ejemplo', menuExample),
-        
         if (supplements.isNotEmpty)
           _buildSection('💊 Suplementos Recomendados', supplements),
-        
         _buildSection('📋 Recomendaciones Generales', [
           'Mantener horarios regulares de comida',
           'Beber 6-8 vasos de agua al día',
@@ -216,7 +213,6 @@ class PdfGeneratorService {
           'Realizar actividad física diaria',
           'Dormir 8-10 horas diarias',
         ]),
-        
         _buildSection('🥩 Alimentos Ricos en Hierro', [
           'Carnes rojas magras',
           'Hígado de res/pollo',
@@ -247,20 +243,20 @@ class PdfGeneratorService {
           ),
           pw.SizedBox(height: 8),
           ...items.map((item) => pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 4),
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('• ', style: pw.TextStyle(fontSize: 10)),
-                pw.Expanded(
-                  child: pw.Text(
-                    item,
-                    style: pw.TextStyle(fontSize: 10, lineSpacing: 1.2),
-                  ),
+                padding: const pw.EdgeInsets.only(bottom: 4),
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('• ', style: pw.TextStyle(fontSize: 10)),
+                    pw.Expanded(
+                      child: pw.Text(
+                        item,
+                        style: pw.TextStyle(fontSize: 10, lineSpacing: 1.2),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -341,7 +337,8 @@ class PdfGeneratorService {
 
   static Future<File> _savePDF(pw.Document pdf, String childName) async {
     final directory = await getApplicationDocumentsDirectory();
-    final fileName = 'plan_nutricional_${childName.replaceAll(' ', '_').toLowerCase()}.pdf';
+    final fileName =
+        'plan_nutricional_${childName.replaceAll(' ', '_').toLowerCase()}.pdf';
     final file = File('${directory.path}/$fileName');
     await file.writeAsBytes(await pdf.save());
     return file;

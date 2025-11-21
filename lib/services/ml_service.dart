@@ -11,7 +11,8 @@ class MLServices {
     final model = await FirebaseModelDownloader.instance.getModel(
       modelName,
       FirebaseModelDownloadType.localModelUpdateInBackground,
-      FirebaseModelDownloadConditions( // ← sin const
+      FirebaseModelDownloadConditions(
+        // ← sin const
         iosAllowsCellularAccess: false,
         iosAllowsBackgroundDownloading: true,
         androidChargingRequired: false,
@@ -105,5 +106,4 @@ class MLServices {
     // Devuelve como List<double>
     return output.map((e) => e.toDouble()).toList();
   }
-
 }

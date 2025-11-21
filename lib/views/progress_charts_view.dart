@@ -27,7 +27,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
       body: Consumer<NinoController>(
         builder: (context, ninoController, child) {
           final ninos = ninoController.ninos;
-          
+
           if (ninos.isEmpty) {
             return _buildEmptyState();
           }
@@ -36,10 +36,10 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
             children: [
               // Selector de niño y tipo de gráfico
               _buildControls(ninos),
-              
+
               // Gráficos
               Expanded(
-                child: _selectedChild != null 
+                child: _selectedChild != null
                     ? _buildCharts(_selectedChild!)
                     : _buildSelectChildPrompt(),
               ),
@@ -57,7 +57,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -96,7 +96,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Selector de tipo de gráfico
           Row(
             children: [
@@ -133,7 +133,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
 
   Widget _buildCharts(NinoModel nino) {
     final progressData = _generateSampleData(nino);
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -141,15 +141,15 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
           // Header informativo
           _buildChildHeader(nino),
           const SizedBox(height: 20),
-          
+
           // Gráfico seleccionado
           _buildSelectedChart(progressData),
           const SizedBox(height: 20),
-          
+
           // Tabla de datos
           _buildDataTable(progressData),
           const SizedBox(height: 20),
-          
+
           // Resumen de progreso
           _buildProgressSummary(nino, progressData),
         ],
@@ -171,7 +171,9 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: nino.sexo == 'Masculino' ? Colors.blue.shade100 : Colors.pink.shade100,
+            backgroundColor: nino.sexo == 'Masculino'
+                ? Colors.blue.shade100
+                : Colors.pink.shade100,
             child: Icon(
               nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
               color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
@@ -346,7 +348,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   ) {
     final maxValue = data.map(valueGetter).reduce((a, b) => a > b ? a : b);
     final minValue = data.map(valueGetter).reduce((a, b) => a < b ? a : b);
-    
+
     return Stack(
       children: [
         // Línea de fondo
@@ -358,7 +360,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
             ),
           ),
         ),
-        
+
         // Línea del gráfico
         CustomPaint(
           size: const Size(double.infinity, 200),
@@ -383,7 +385,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
         final item = data[index];
         final riskColor = _getRiskColorFromLevel(item.riskLevel);
         final height = (item.riskLevel / 10) * 150; // Escala 0-10 a altura
-        
+
         return Container(
           width: 60,
           margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -458,9 +460,11 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
                     DataCell(Text(item.height.toStringAsFixed(1))),
                     DataCell(
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _getRiskColorFromLevel(item.riskLevel).withOpacity(0.2),
+                          color: _getRiskColorFromLevel(item.riskLevel)
+                              .withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -485,7 +489,7 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
 
   Widget _buildProgressSummary(NinoModel nino, List<ProgressData> data) {
     if (data.length < 2) return const SizedBox();
-    
+
     final firstData = data.first;
     final lastData = data.last;
     final weightChange = lastData.weight - firstData.weight;
@@ -545,14 +549,15 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
     );
   }
 
-  Widget _buildSummaryItem(String title, String value, Color color, IconData icon) {
+  Widget _buildSummaryItem(
+      String title, String value, Color color, IconData icon) {
     return Expanded(
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 20),

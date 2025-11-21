@@ -54,15 +54,24 @@ class AnemiaRiskEngine {
     // 1) IMC
     final imc = _imc(i.pesoKg, i.tallaM);
     if (imc <= 14) {
-      score += 20; factores.add('IMC bajo (${imc.toStringAsFixed(1)})');
+      score += 20;
+      factores.add('IMC bajo (${imc.toStringAsFixed(1)})');
     } else if (imc <= 17) {
-      score += 10; factores.add('IMC ligeramente bajo (${imc.toStringAsFixed(1)})');
+      score += 10;
+      factores.add('IMC ligeramente bajo (${imc.toStringAsFixed(1)})');
     } else {
-      score += 5; factores.add('IMC en rango (${imc.toStringAsFixed(1)})');
+      score += 5;
+      factores.add('IMC en rango (${imc.toStringAsFixed(1)})');
     }
 
     // 3) Cuestionario
-    final qFlags = [i.palidez, i.fatiga, i.apetitoBajo, i.infeccionesFrecuentes, i.bajaIngestaHierro];
+    final qFlags = [
+      i.palidez,
+      i.fatiga,
+      i.apetitoBajo,
+      i.infeccionesFrecuentes,
+      i.bajaIngestaHierro
+    ];
     final qScore = qFlags.where((f) => f).length * 6.0;
     score += qScore;
     if (qScore > 0) factores.add('Síntomas/dieta: +${qScore.toInt()} pts');
@@ -86,7 +95,7 @@ class AnemiaRiskEngine {
   // ==============================
   // === DETECCIÓN DE PALEZ HSV ===
   // ==============================
-  
+
   // CONSTANTES ÚNICAS - Eliminadas las duplicadas
   static const double hMin = 8.0;
   static const double hMax = 22.0;
@@ -98,14 +107,14 @@ class AnemiaRiskEngine {
   // === CONSTANTES Y RANGOS HSV ===
   static const hsvRanges = {
     'HEALTHY': {
-      'hRange': [350.0, 15.0],  // rojo-rosado saludable
-      'sRange': [0.45, 0.75],   // buena saturación
-      'vRange': [0.65, 0.85]    // brillante pero no excesivo
+      'hRange': [350.0, 15.0], // rojo-rosado saludable
+      'sRange': [0.45, 0.75], // buena saturación
+      'vRange': [0.65, 0.85] // brillante pero no excesivo
     },
     'PALE': {
-      'hRange': [10.0, 25.0],   // más amarillento/pálido
-      'sRange': [0.20, 0.40],   // menos saturado
-      'vRange': [0.75, 0.95]    // más brillante/pálido
+      'hRange': [10.0, 25.0], // más amarillento/pálido
+      'sRange': [0.20, 0.40], // menos saturado
+      'vRange': [0.75, 0.95] // más brillante/pálido
     }
   };
 
@@ -117,7 +126,7 @@ class AnemiaRiskEngine {
       g /= 255.0;
       b /= 255.0;
     }
-    
+
     final cMax = max(r, max(g, b));
     final cMin = min(r, min(g, b));
     final delta = cMax - cMin;
@@ -145,16 +154,18 @@ class AnemiaRiskEngine {
   /// Determina si un píxel pertenece a la conjuntiva con rangos mejorados
   static bool _isConjunctivalPixel(List<double> hsv) {
     final h = hsv[0], s = hsv[1], v = hsv[2];
-    
+
     // Filtros básicos
-    if (v < 0.15 || v > 0.95) return false;  // muy oscuro o muy brillante
-    if (s < 0.15) return false;              // muy desaturado (grises)
-    
+    if (v < 0.15 || v > 0.95) return false; // muy oscuro o muy brillante
+    if (s < 0.15) return false; // muy desaturado (grises)
+
     // Normalizar hue para el wrap-around en rojos
     final hue = h >= 350 ? h - 360 : h;
-    
+
     // Rango expandido para conjuntiva (incluye tonos rojizos y rosados)
-    return (hue >= -10 && hue <= 25) && (s >= 0.15 && s <= 0.85) && (v >= 0.25 && v <= 0.95);
+    return (hue >= -10 && hue <= 25) &&
+        (s >= 0.15 && s <= 0.85) &&
+        (v >= 0.25 && v <= 0.95);
   }
 
   /// Analiza la palidez de la conjuntiva con procesamiento mejorado
@@ -165,16 +176,17 @@ class AnemiaRiskEngine {
       if (decoded == null) return _defaultResponse();
 
       List<List<double>> conjPixels = [];
-      
+
       // Optimizar muestreo para imágenes grandes
       final step = max(1, (decoded.width * decoded.height) ~/ 100000);
-      
+
       // Recolectar píxeles válidos
       for (int y = 0; y < decoded.height; y += step) {
         for (int x = 0; x < decoded.width; x += step) {
           final px = decoded.getPixel(x, y);
-          final hsv = _rgbToHsv(px.r.toDouble(), px.g.toDouble(), px.b.toDouble());
-          
+          final hsv =
+              _rgbToHsv(px.r.toDouble(), px.g.toDouble(), px.b.toDouble());
+
           if (_isConjunctivalPixel(hsv)) {
             conjPixels.add(hsv);
           }
@@ -185,17 +197,13 @@ class AnemiaRiskEngine {
 
       // 2. Calcular estadísticas robustas
       final stats = _calculateRobustStats(conjPixels);
-      
+
       // 3. Calcular similitud con perfiles de referencia
-      final healthyScore = _calculateProfileSimilarity(
-        stats['hMedian']!, stats['sMedian']!, stats['vMedian']!,
-        hsvRanges['HEALTHY']!
-      );
-      
-      final paleScore = _calculateProfileSimilarity(
-        stats['hMedian']!, stats['sMedian']!, stats['vMedian']!,
-        hsvRanges['PALE']!
-      );
+      final healthyScore = _calculateProfileSimilarity(stats['hMedian']!,
+          stats['sMedian']!, stats['vMedian']!, hsvRanges['HEALTHY']!);
+
+      final paleScore = _calculateProfileSimilarity(stats['hMedian']!,
+          stats['sMedian']!, stats['vMedian']!, hsvRanges['PALE']!);
 
       // 4. Normalizar scores
       final total = healthyScore + paleScore;
@@ -203,7 +211,8 @@ class AnemiaRiskEngine {
       final normalizedPale = paleScore / total;
 
       return {
-        "label": normalizedHealthy > normalizedPale ? "sin_anemia" : "con_anemia",
+        "label":
+            normalizedHealthy > normalizedPale ? "sin_anemia" : "con_anemia",
         "scores": {
           "sin_anemia": double.parse(normalizedHealthy.toStringAsFixed(3)),
           "con_anemia": double.parse(normalizedPale.toStringAsFixed(3))
@@ -224,7 +233,7 @@ class AnemiaRiskEngine {
     final hValues = pixels.map((p) => p[0]).toList()..sort();
     final sValues = pixels.map((p) => p[1]).toList()..sort();
     final vValues = pixels.map((p) => p[2]).toList()..sort();
-    
+
     return {
       'hMedian': _median(hValues),
       'sMedian': _median(sValues),
@@ -234,15 +243,16 @@ class AnemiaRiskEngine {
 
   /// Calcula similitud con un perfil de referencia
   static double _calculateProfileSimilarity(
-    double h, double s, double v, Map<String, List<double>> profile) {
+      double h, double s, double v, Map<String, List<double>> profile) {
     // Pesos relativos para cada componente
     const wH = 0.5, wS = 0.3, wV = 0.2;
-    
+
     // Calcular distancias normalizadas
-    final dH = _hueDistance(h, (profile['hRange']![0] + profile['hRange']![1]) / 2);
+    final dH =
+        _hueDistance(h, (profile['hRange']![0] + profile['hRange']![1]) / 2);
     final dS = (s - (profile['sRange']![0] + profile['sRange']![1]) / 2).abs();
     final dV = (v - (profile['vRange']![0] + profile['vRange']![1]) / 2).abs();
-    
+
     // Convertir distancia a similitud
     return exp(-(wH * dH * dH + wS * dS * dS + wV * dV * dV));
   }
@@ -256,16 +266,16 @@ class AnemiaRiskEngine {
   /// Calcula la mediana de una lista ordenada
   static double _median(List<double> sorted) {
     final mid = sorted.length ~/ 2;
-    return sorted.length.isOdd 
+    return sorted.length.isOdd
         ? sorted[mid]
         : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   static Map<String, dynamic> _defaultResponse() => {
-    "label": "sin_anemia",
-    "scores": {"sin_anemia": 0.0, "con_anemia": 0.0},
-    "hsv_stats": {"H_mean": 0.0, "S_mean": 0.0, "V_mean": 0.0}
-  };
+        "label": "sin_anemia",
+        "scores": {"sin_anemia": 0.0, "con_anemia": 0.0},
+        "hsv_stats": {"H_mean": 0.0, "S_mean": 0.0, "V_mean": 0.0}
+      };
 
   /// Calcula palidez por análisis de color (HSV).
   /// 1.0 = muy pálido / 0.0 = saludable (rojizo).
@@ -293,14 +303,17 @@ class AnemiaRiskEngine {
           final h = hsv[0], s = hsv[1], v = hsv[2];
 
           final bool isConj = (h >= hMin && h <= hMax) &&
-                              (s >= sMin && s <= sMax) &&
-                              (v >= vMin && v <= vMax);
+              (s >= sMin && s <= sMax) &&
+              (v >= vMin && v <= vMax);
 
           if (isConj) {
             conjCount++;
-            final hDist = ((h - hC).abs() / ((hMax - hMin) / 2)).clamp(0.0, 1.0);
-            final sDist = ((s - sC).abs() / ((sMax - sMin) / 2)).clamp(0.0, 1.0);
-            final vDist = ((v - vC).abs() / ((vMax - vMin) / 2)).clamp(0.0, 1.0);
+            final hDist =
+                ((h - hC).abs() / ((hMax - hMin) / 2)).clamp(0.0, 1.0);
+            final sDist =
+                ((s - sC).abs() / ((sMax - sMin) / 2)).clamp(0.0, 1.0);
+            final vDist =
+                ((v - vC).abs() / ((vMax - vMin) / 2)).clamp(0.0, 1.0);
             scoreHue += (1.0 - hDist);
             scoreSat += (1.0 - sDist);
             scoreVal += (1.0 - vDist);
@@ -317,9 +330,9 @@ class AnemiaRiskEngine {
 
       // Cuánto se parece al color saludable (0..1)
       final healthyScore = (meanHue * 0.40) +
-                           (meanSat * 0.30) +
-                           (meanVal * 0.20) +
-                           (conjRatio * 0.10);
+          (meanSat * 0.30) +
+          (meanVal * 0.20) +
+          (conjRatio * 0.10);
 
       // Palidez inversa
       final paleness = 1.0 - healthyScore.clamp(0.0, 1.0);

@@ -27,9 +27,8 @@ class UsuarioService {
   // Crear nuevo usuario
   static Future<String> crearUsuario(UsuarioModel usuario) async {
     try {
-      final docRef = await _firestore
-          .collection(_collection)
-          .add(usuario.toMap());
+      final docRef =
+          await _firestore.collection(_collection).add(usuario.toMap());
       return docRef.id;
     } catch (e) {
       throw Exception('Error al crear usuario: $e');
@@ -77,7 +76,8 @@ class UsuarioService {
   }
 
   // Verificar credenciales
-  static Future<bool> verificarCredenciales(String usuario, String contrasena) async {
+  static Future<bool> verificarCredenciales(
+      String usuario, String contrasena) async {
     try {
       final usuarioModel = await buscarPorUsuario(usuario);
       if (usuarioModel != null && usuarioModel.contrasena == contrasena) {

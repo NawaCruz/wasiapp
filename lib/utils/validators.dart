@@ -96,6 +96,7 @@ class Validators {
     }
     return null;
   }
+
   // Funciones Core eliminadas para mantener solo las versiones estándar utilizadas
   static String? validarCampoRequerido(String? value, String campo) {
     if (value == null || value.trim().isEmpty) {
@@ -149,7 +150,8 @@ class DateTimeUtils {
     final ahora = DateTime.now();
     int edad = ahora.year - fechaNacimiento.year;
     if (ahora.month < fechaNacimiento.month ||
-        (ahora.month == fechaNacimiento.month && ahora.day < fechaNacimiento.day)) {
+        (ahora.month == fechaNacimiento.month &&
+            ahora.day < fechaNacimiento.day)) {
       edad--;
     }
     return edad;

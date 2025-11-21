@@ -22,13 +22,20 @@ dependencies:
   pdf: ^3.10.4
   open_file: ^3.3.3
   path_provider: ^2.1.1
-  flutter_local_notifications: ^16.3.0
+  flutter_local_notifications: ^17.0.0
   timezone: ^0.9.1
+  dtd: ^4.0.0
+  flutter_lints: ^6.0.0
+  google_fonts: ^6.3.2
+  json_rpc_2: ^4.0.0
+  path: ^1.9.1
+  stack_trace: ^1.12.1
+  url_launcher: ^6.3.2
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.0
 
 flutter:

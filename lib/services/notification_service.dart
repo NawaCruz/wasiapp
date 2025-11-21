@@ -17,32 +17,35 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  static final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     // Inicializar timezone
     tz_data.initializeTimeZones();
-    const AndroidInitializationSettings androidSettings = 
+    const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    
-    const DarwinInitializationSettings iosSettings = 
+
+    const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
-    
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
     final InitializationSettings settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
-    
+
     await _notifications.initialize(settings);
   }
 
   // Programar recordatorio de plan alimenticio
-  Future<void> scheduleFoodPlanReminder(String childName, TimeOfDay24 time, List<int> days) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+  Future<void> scheduleFoodPlanReminder(
+      String childName, TimeOfDay24 time, List<int> days) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'food_reminders',
       'Recordatorios de Alimentación',
       channelDescription: 'Recordatorios para cumplir con el plan alimenticio',
@@ -50,9 +53,9 @@ class NotificationService {
       priority: Priority.high,
       playSound: true,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
@@ -65,7 +68,8 @@ class NotificationService {
         'Es hora de seguir el plan nutricional. ¡Mantén una alimentación saludable!',
         _nextInstanceOfTime(time, day),
         details,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     }
@@ -106,17 +110,19 @@ class NotificationService {
     );
   }
 
-  Future<void> _scheduleSingleReminder(TimeOfDay24 time, String title, String body, List<int> days) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+  Future<void> _scheduleSingleReminder(
+      TimeOfDay24 time, String title, String body, List<int> days) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'food_reminders',
       'Recordatorios de Alimentación',
       channelDescription: 'Recordatorios para cumplir con el plan alimenticio',
       importance: Importance.high,
       priority: Priority.high,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
@@ -129,7 +135,8 @@ class NotificationService {
         body,
         _nextInstanceOfTime(time, day),
         details,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     }
@@ -146,15 +153,15 @@ class NotificationService {
       time.minute,
       time.second,
     );
-    
+
     while (scheduledDate.weekday != day) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-    
+
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 7));
     }
-    
+
     return scheduledDate;
   }
 
@@ -165,21 +172,22 @@ class NotificationService {
 
   // Probar notificación inmediata
   Future<void> testNotification() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'food_reminders',
       'Recordatorios de Alimentación',
       channelDescription: 'Recordatorios para cumplir con el plan alimenticio',
       importance: Importance.high,
       priority: Priority.high,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
-    
+
     await _notifications.show(
       0,
       '🍎 Recordatorio de Prueba',

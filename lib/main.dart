@@ -19,10 +19,20 @@ import 'providers/ml_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  
+  debugPrint('🚀 Iniciando aplicación...');
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase inicializado');
+  } catch (e) {
+    debugPrint('❌ Error Firebase: $e');
+  }
 
+  debugPrint('📱 Lanzando app...');
+  
   runApp(
     MultiProvider(
       providers: [
@@ -69,8 +79,7 @@ class AplicacionWasi extends StatelessWidget {
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
           fillColor: Colors.grey[50],
         ),

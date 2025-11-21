@@ -46,7 +46,8 @@ class _OnboardingViewState extends State<OnboardingView> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       title: '¡Bienvenido a WasiApp!',
-      description: 'La aplicación para el control y seguimiento del crecimiento nutricional infantil.',
+      description:
+          'La aplicación para el control y seguimiento del crecimiento nutricional infantil.',
       icon: Icons.child_care,
       color: Colors.blue,
       features: [
@@ -58,7 +59,8 @@ class _OnboardingViewState extends State<OnboardingView> {
     ),
     OnboardingPage(
       title: 'Registro Simplificado',
-      description: 'Registra información de niños de manera rápida y eficiente.',
+      description:
+          'Registra información de niños de manera rápida y eficiente.',
       icon: Icons.assignment_add,
       color: Colors.green,
       features: [
@@ -82,7 +84,8 @@ class _OnboardingViewState extends State<OnboardingView> {
     ),
     OnboardingPage(
       title: '¡Comencemos!',
-      description: 'Todo listo para empezar a registrar y monitorear el crecimiento infantil.',
+      description:
+          'Todo listo para empezar a registrar y monitorear el crecimiento infantil.',
       icon: Icons.rocket_launch,
       color: Colors.orange,
       features: [
@@ -186,12 +189,14 @@ class _OnboardingViewState extends State<OnboardingView> {
                             child: OutlinedButton(
                               onPressed: _previousPage,
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: _pages[_currentPage].color),
+                                side: BorderSide(
+                                    color: _pages[_currentPage].color),
                                 padding: const EdgeInsets.all(16),
                               ),
                               child: Text(
                                 'Anterior',
-                                style: TextStyle(color: _pages[_currentPage].color),
+                                style: TextStyle(
+                                    color: _pages[_currentPage].color),
                               ),
                             ),
                           ),
@@ -210,7 +215,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                               _currentPage == _pages.length - 1
                                   ? 'Comenzar'
                                   : 'Siguiente',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -277,27 +283,27 @@ class _OnboardingViewState extends State<OnboardingView> {
 
           // Características
           ...page.features.map((feature) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: page.color,
-                    shape: BoxShape.circle,
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: page.color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    feature,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -364,7 +370,7 @@ class HelpSystem {
 
   static void showQuickHelp(BuildContext context, String feature) {
     final helpInfo = _getHelpInfo(feature);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -382,33 +388,35 @@ class HelpSystem {
             Text(helpInfo.description),
             const SizedBox(height: 16),
             ...helpInfo.steps.map((step) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${helpInfo.steps.indexOf(step) + 1}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${helpInfo.steps.indexOf(step) + 1}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                          child:
+                              Text(step, style: const TextStyle(fontSize: 13))),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(step, style: const TextStyle(fontSize: 13))),
-                ],
-              ),
-            )),
+                )),
           ],
         ),
         actions: [
@@ -503,7 +511,8 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
   final List<TourStep> _tourSteps = [
     TourStep(
       title: 'Pantalla Principal',
-      description: 'Aquí verás un resumen de todos tus registros y estadísticas importantes.',
+      description:
+          'Aquí verás un resumen de todos tus registros y estadísticas importantes.',
       icon: Icons.home,
     ),
     TourStep(
@@ -513,12 +522,14 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
     ),
     TourStep(
       title: 'Ver Detalles',
-      description: 'Toca cualquier registro para ver información completa y opciones de edición.',
+      description:
+          'Toca cualquier registro para ver información completa y opciones de edición.',
       icon: Icons.visibility,
     ),
     TourStep(
       title: 'Actualizar',
-      description: 'Desliza hacia abajo o usa el ícono de actualizar para obtener los datos más recientes.',
+      description:
+          'Desliza hacia abajo o usa el ícono de actualizar para obtener los datos más recientes.',
       icon: Icons.refresh,
     ),
   ];
@@ -535,13 +546,13 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
             Text(
               'Tour de Funciones',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                  ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -573,7 +584,7 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
                 },
               ),
             ),
-            
+
             // Indicadores
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -584,15 +595,17 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
                   width: _currentPage == index ? 16 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? Colors.blue : Colors.grey.shade300,
+                    color: _currentPage == index
+                        ? Colors.blue
+                        : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Botones
             Row(
               children: [
@@ -612,10 +625,12 @@ class _FeatureTourDialogState extends State<FeatureTourDialog> {
                     onPressed: _currentPage == _tourSteps.length - 1
                         ? () => Navigator.pop(context)
                         : () => _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          ),
-                    child: Text(_currentPage == _tourSteps.length - 1 ? 'Finalizar' : 'Siguiente'),
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            ),
+                    child: Text(_currentPage == _tourSteps.length - 1
+                        ? 'Finalizar'
+                        : 'Siguiente'),
                   ),
                 ),
               ],
@@ -655,7 +670,7 @@ class ContextualTooltip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!enabled) return child;
-    
+
     return Tooltip(
       message: message,
       preferBelow: false,

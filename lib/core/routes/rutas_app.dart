@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';               // aquí vive `Rutas`
+import '../constants/app_constants.dart'; // aquí vive `Rutas`
 import '../../views/home_view.dart';
-import '../../views/registro_flow.dart';               // <- contiene class RegistroNinoFlow
+import '../../views/registro_flow.dart'; // <- contiene class RegistroNinoFlow
 
 class RutasApp {
   /// Mapa de rutas estáticas
   static Map<String, WidgetBuilder> get rutas => {
-        Rutas.inicio:        (context) => const HomeView(),
+        Rutas.inicio: (context) => const HomeView(),
         Rutas.registrarNino: (context) => const RegistroNinoFlow(),
-        Rutas.registroFlow:  (context) => const RegistroNinoFlow(), // <- usa la clase REAL
+        Rutas.registroFlow: (context) =>
+            const RegistroNinoFlow(), // <- usa la clase REAL
       };
 
   /// Generador dinámico (opcional) con animación
@@ -19,7 +20,7 @@ class RutasApp {
       case Rutas.registrarNino:
         return _crearRuta(const RegistroNinoFlow());
       case Rutas.registroFlow:
-        return _crearRuta(const RegistroNinoFlow());   // <- idem
+        return _crearRuta(const RegistroNinoFlow()); // <- idem
       default:
         return _crearRuta(_paginaNoEncontrada());
     }
@@ -32,8 +33,8 @@ class RutasApp {
       transitionsBuilder: (_, anim, __, child) {
         const begin = Offset(1, 0);
         const end = Offset.zero;
-        final tween = Tween(begin: begin, end: end)
-            .chain(CurveTween(curve: Curves.ease));
+        final tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.ease));
         return SlideTransition(position: anim.drive(tween), child: child);
       },
     );

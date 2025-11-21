@@ -63,16 +63,16 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       _sexo = n.sexo.isNotEmpty ? n.sexo : 'Masculino';
       _peso = n.peso;
       _talla = n.talla > 3 ? n.talla / 100.0 : n.talla; // acepta cm o m
-      
+
       // Usar datos del cuestionario de salud si están disponibles
       _palidez = n.palidez == 'Sí';
       _fatiga = n.fatiga == 'Sí';
       _bajaIngestaHierro = n.alimentosHierro == 'No'; // Invertir lógica
       _apetitoBajo = n.alimentacionBalanceada == 'No'; // Invertir lógica
-      
+
       // Si hay evaluación previa de anemia, considerar para infecciones frecuentes
       _infecciones = n.anemia == 'Sí';
-      
+
       // Cargar foto de conjuntiva si existe
       if (n.fotoConjuntivaUrl != null && n.fotoConjuntivaUrl!.isNotEmpty) {
         final fotoFile = File(n.fotoConjuntivaUrl!);
@@ -101,47 +101,43 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       );
       return;
     }
-    
+
     final x = await _picker.pickImage(
-      source: source, 
-      imageQuality: 85, 
-      maxWidth: 1024, 
-      maxHeight: 1024
-    );
-    
+        source: source, imageQuality: 85, maxWidth: 1024, maxHeight: 1024);
+
     if (x == null) return;
-    
+
     // 🔹 Leer la foto y calcular score
     final tempFile = File(x.path);
     final score = AnemiaRiskEngine.imagePalenessFromFile(tempFile);
-    
+
     try {
       // 🔹 Guardar la ruta de la foto directamente
       setState(() {
         _image = tempFile;
         _imgScore = score;
       });
-      
+
       // 🔹 Guardar ruta en Firestore
       final ninoActualizado = _ninoSeleccionado!.copyWith(
         fotoConjuntivaUrl: x.path, // ← Usar ruta original
       );
-      
+
       if (!mounted) return;
-      
+
       final ninoController = context.read<NinoController>();
       final exitoso = await ninoController.actualizarNino(
         ninoActualizado,
         usuarioId: _ninoSeleccionado!.usuarioId,
       );
-      
+
       if (!mounted) return;
-      
+
       if (exitoso) {
         setState(() {
           _ninoSeleccionado = ninoActualizado;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Foto guardada correctamente'),
@@ -183,7 +179,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     if (_ninoSeleccionado != null && mounted) {
       try {
         final ninoActualizado = _ninoSeleccionado!.copyWith(
-          diagnosticoAnemiaRiesgo: r.level.toString().split('.').last, // "alto", "medio", "bajo"
+          diagnosticoAnemiaRiesgo:
+              r.level.toString().split('.').last, // "alto", "medio", "bajo"
           diagnosticoAnemiaScore: r.score,
           diagnosticoAnemiaFecha: DateTime.now(),
         );
@@ -195,7 +192,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Diagnóstico guardado en el historial clínico'),
+              content:
+                  const Text('Diagnóstico guardado en el historial clínico'),
               backgroundColor: Colors.green[600],
               duration: const Duration(seconds: 2),
             ),
@@ -220,7 +218,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     // Obtener información de la pantalla para responsividad
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 600;
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
@@ -276,7 +274,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                 ],
               ),
             ),
-            
+
             // Contenido principal
             Padding(
               padding: const EdgeInsets.all(16),
@@ -286,7 +284,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                   // Info card
                   Card(
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(
@@ -297,13 +296,15 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                               color: Colors.blue[50],
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(Icons.info_outline, color: Colors.blue[600]),
+                            child: Icon(Icons.info_outline,
+                                color: Colors.blue[600]),
                           ),
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text(
                               'Este resultado es orientativo y combina cuestionario, datos antropométricos y análisis visual de palidez.',
-                              style: TextStyle(fontSize: 13, color: Colors.black87),
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.black87),
                             ),
                           ),
                         ],
@@ -334,7 +335,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                   ),
                                 );
                               }
-                              
+
                               return Column(
                                 children: [
                                   // Dropdown con diseño limpio y profesional
@@ -342,10 +343,12 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: Colors.green[300]!, width: 2),
+                                      border: Border.all(
+                                          color: Colors.green[300]!, width: 2),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.green.withValues(alpha: 0.1),
+                                          color: Colors.green
+                                              .withValues(alpha: 0.1),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -355,7 +358,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       value: _ninoSeleccionado,
                                       decoration: InputDecoration(
                                         labelText: 'Selecciona un paciente',
-                                        hintText: 'Toca aquí para elegir un paciente',
+                                        hintText:
+                                            'Toca aquí para elegir un paciente',
                                         labelStyle: TextStyle(
                                           color: Colors.green[700],
                                           fontWeight: FontWeight.w600,
@@ -384,36 +388,47 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                         ),
                                       ),
                                       dropdownColor: Colors.white,
-                                      menuMaxHeight: MediaQuery.of(context).size.height * 0.4,
+                                      menuMaxHeight:
+                                          MediaQuery.of(context).size.height *
+                                              0.4,
                                       isExpanded: true,
-                                      selectedItemBuilder: (BuildContext context) {
+                                      selectedItemBuilder:
+                                          (BuildContext context) {
                                         return ninos.map((nino) {
                                           return Row(
                                             children: [
                                               CircleAvatar(
                                                 radius: isSmallScreen ? 16 : 18,
-                                                backgroundColor: nino.sexo == 'Masculino'
-                                                    ? Colors.blue[100]
-                                                    : Colors.pink[100],
+                                                backgroundColor:
+                                                    nino.sexo == 'Masculino'
+                                                        ? Colors.blue[100]
+                                                        : Colors.pink[100],
                                                 child: Icon(
-                                                  nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                                                  color: nino.sexo == 'Masculino'
-                                                      ? Colors.blue[600]
-                                                      : Colors.pink[600],
+                                                  nino.sexo == 'Masculino'
+                                                      ? Icons.boy
+                                                      : Icons.girl,
+                                                  color:
+                                                      nino.sexo == 'Masculino'
+                                                          ? Colors.blue[600]
+                                                          : Colors.pink[600],
                                                   size: isSmallScreen ? 18 : 20,
                                                 ),
                                               ),
-                                              SizedBox(width: isSmallScreen ? 8 : 10),
+                                              SizedBox(
+                                                  width:
+                                                      isSmallScreen ? 8 : 10),
                                               Expanded(
                                                 child: Text(
                                                   '${nino.nombreCompleto} • DNI: ${nino.dniNino}',
                                                   style: TextStyle(
-                                                    fontSize: isSmallScreen ? 12 : 14,
+                                                    fontSize:
+                                                        isSmallScreen ? 12 : 14,
                                                     fontWeight: FontWeight.w600,
                                                     color: Colors.black87,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -428,43 +443,58 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                               // Avatar simple
                                               CircleAvatar(
                                                 radius: isSmallScreen ? 18 : 20,
-                                                backgroundColor: nino.sexo == 'Masculino'
-                                                    ? Colors.blue[100]
-                                                    : Colors.pink[100],
+                                                backgroundColor:
+                                                    nino.sexo == 'Masculino'
+                                                        ? Colors.blue[100]
+                                                        : Colors.pink[100],
                                                 child: Icon(
-                                                  nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                                                  color: nino.sexo == 'Masculino'
-                                                      ? Colors.blue[600]
-                                                      : Colors.pink[600],
+                                                  nino.sexo == 'Masculino'
+                                                      ? Icons.boy
+                                                      : Icons.girl,
+                                                  color:
+                                                      nino.sexo == 'Masculino'
+                                                          ? Colors.blue[600]
+                                                          : Colors.pink[600],
                                                   size: isSmallScreen ? 20 : 22,
                                                 ),
                                               ),
-                                              SizedBox(width: isSmallScreen ? 10 : 12),
+                                              SizedBox(
+                                                  width:
+                                                      isSmallScreen ? 10 : 12),
                                               // Información del niño
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Text(
                                                       nino.nombreCompleto,
                                                       style: TextStyle(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize: isSmallScreen ? 13 : 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: isSmallScreen
+                                                            ? 13
+                                                            : 14,
                                                         color: Colors.black87,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                     SizedBox(height: 2),
                                                     Text(
                                                       'DNI: ${nino.dniNino} • ${nino.edad} años',
                                                       style: TextStyle(
-                                                        fontSize: isSmallScreen ? 10 : 11,
+                                                        fontSize: isSmallScreen
+                                                            ? 10
+                                                            : 11,
                                                         color: Colors.grey[600],
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ],
                                                 ),
@@ -487,77 +517,88 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                         }
                                         return null;
                                       },
-                                      icon: const SizedBox.shrink(), // Ocultar el icono por defecto
+                                      icon: const SizedBox
+                                          .shrink(), // Ocultar el icono por defecto
                                     ),
                                   ),
-                                  
+
                                   // Mensaje cuando no hay paciente seleccionado
                                   if (_ninoSeleccionado == null) ...[
                                     const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [Colors.blue[50]!, Colors.blue[100]!.withValues(alpha: 0.3)],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.blue[50]!,
+                                            Colors.blue[100]!
+                                                .withValues(alpha: 0.3)
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: Colors.blue[200]!, width: 1),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.blue
+                                                .withValues(alpha: 0.1),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                                       ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.blue[200]!, width: 1),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.blue.withValues(alpha: 0.1),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue[500],
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.blue.withValues(alpha: 0.3),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: const Icon(Icons.info, color: Colors.white, size: 18),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '¡Selecciona un paciente!',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.blue[800],
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue[500],
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.blue
+                                                      .withValues(alpha: 0.3),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
                                                 ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'Para continuar con el diagnóstico, primero selecciona un paciente del menú desplegable.',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.blue[600],
-                                                ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
+                                            child: const Icon(Icons.info,
+                                                color: Colors.white, size: 18),
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '¡Selecciona un paciente!',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.blue[800],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'Para continuar con el diagnóstico, primero selecciona un paciente del menú desplegable.',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.blue[600],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                                  
+                                  ],
+
                                   // Información del niño seleccionado mejorada
                                   if (_ninoSeleccionado != null) ...[
                                     const SizedBox(height: 20),
@@ -565,39 +606,54 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       padding: const EdgeInsets.all(18),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
-                                          colors: [Colors.green[50]!, Colors.white],
+                                          colors: [
+                                            Colors.green[50]!,
+                                            Colors.white
+                                          ],
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                         ),
                                         borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: Colors.green[200]!, width: 1.5),
+                                        border: Border.all(
+                                            color: Colors.green[200]!,
+                                            width: 1.5),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.green.withValues(alpha: 0.08),
+                                            color: Colors.green
+                                                .withValues(alpha: 0.08),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: [
                                               Container(
-                                                padding: const EdgeInsets.all(8),
+                                                padding:
+                                                    const EdgeInsets.all(8),
                                                 decoration: BoxDecoration(
                                                   color: Colors.green[500],
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.green.withValues(alpha: 0.3),
+                                                      color: Colors.green
+                                                          .withValues(
+                                                              alpha: 0.3),
                                                       blurRadius: 6,
-                                                      offset: const Offset(0, 2),
+                                                      offset:
+                                                          const Offset(0, 2),
                                                     ),
                                                   ],
                                                 ),
-                                                child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                                child: const Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.white,
+                                                    size: 20),
                                               ),
                                               const SizedBox(width: 12),
                                               Text(
@@ -615,11 +671,14 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: Colors.green[100]!),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: Colors.green[100]!),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black.withValues(alpha: 0.05),
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.05),
                                                   blurRadius: 6,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -632,25 +691,49 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                     // Avatar más grande con efectos
                                                     Container(
                                                       decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(30),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
                                                         boxShadow: [
                                                           BoxShadow(
-                                                            color: (_ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink).withValues(alpha: 0.3),
+                                                            color: (_ninoSeleccionado!
+                                                                            .sexo ==
+                                                                        'Masculino'
+                                                                    ? Colors
+                                                                        .blue
+                                                                    : Colors
+                                                                        .pink)
+                                                                .withValues(
+                                                                    alpha: 0.3),
                                                             blurRadius: 12,
-                                                            offset: const Offset(0, 4),
+                                                            offset:
+                                                                const Offset(
+                                                                    0, 4),
                                                           ),
                                                         ],
                                                       ),
                                                       child: CircleAvatar(
                                                         radius: 30,
-                                                        backgroundColor: _ninoSeleccionado!.sexo == 'Masculino' 
-                                                            ? Colors.blue[100] 
-                                                            : Colors.pink[100],
+                                                        backgroundColor:
+                                                            _ninoSeleccionado!
+                                                                        .sexo ==
+                                                                    'Masculino'
+                                                                ? Colors
+                                                                    .blue[100]
+                                                                : Colors
+                                                                    .pink[100],
                                                         child: Icon(
-                                                          _ninoSeleccionado!.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                                                          color: _ninoSeleccionado!.sexo == 'Masculino' 
-                                                              ? Colors.blue[700] 
-                                                              : Colors.pink[700],
+                                                          _ninoSeleccionado!
+                                                                      .sexo ==
+                                                                  'Masculino'
+                                                              ? Icons.boy
+                                                              : Icons.girl,
+                                                          color: _ninoSeleccionado!
+                                                                      .sexo ==
+                                                                  'Masculino'
+                                                              ? Colors.blue[700]
+                                                              : Colors
+                                                                  .pink[700],
                                                           size: 36,
                                                         ),
                                                       ),
@@ -658,17 +741,26 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                     const SizedBox(width: 20),
                                                     Expanded(
                                                       child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
                                                           Text(
-                                                            _ninoSeleccionado!.nombreCompleto,
-                                                            style: const TextStyle(
+                                                            _ninoSeleccionado!
+                                                                .nombreCompleto,
+                                                            style:
+                                                                const TextStyle(
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
-                                                              color: Colors.black87,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Colors
+                                                                  .black87,
                                                             ),
                                                             maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                           ),
                                                         ],
                                                       ),
@@ -678,16 +770,35 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                 const SizedBox(height: 16),
                                                 // Chips de información en fila separada
                                                 SingleChildScrollView(
-                                                  scrollDirection: Axis.horizontal,
+                                                  scrollDirection:
+                                                      Axis.horizontal,
                                                   child: Row(
                                                     children: [
-                                                      _buildEnhancedInfoChip(Icons.badge, 'DNI: ${_ninoSeleccionado!.dniNino}', Colors.blue),
+                                                      _buildEnhancedInfoChip(
+                                                          Icons.badge,
+                                                          'DNI: ${_ninoSeleccionado!.dniNino}',
+                                                          Colors.blue),
                                                       const SizedBox(width: 8),
-                                                      _buildEnhancedInfoChip(Icons.cake, '${_ninoSeleccionado!.edad} años', Colors.orange),
+                                                      _buildEnhancedInfoChip(
+                                                          Icons.cake,
+                                                          '${_ninoSeleccionado!.edad} años',
+                                                          Colors.orange),
                                                       const SizedBox(width: 8),
-                                                      _buildEnhancedInfoChip(Icons.wc, _ninoSeleccionado!.sexo, _ninoSeleccionado!.sexo == 'Masculino' ? Colors.blue : Colors.pink),
+                                                      _buildEnhancedInfoChip(
+                                                          Icons.wc,
+                                                          _ninoSeleccionado!
+                                                              .sexo,
+                                                          _ninoSeleccionado!
+                                                                      .sexo ==
+                                                                  'Masculino'
+                                                              ? Colors.blue
+                                                              : Colors.pink),
                                                       const SizedBox(width: 8),
-                                                      _buildEnhancedInfoChip(Icons.location_on, _ninoSeleccionado!.residencia, Colors.green),
+                                                      _buildEnhancedInfoChip(
+                                                          Icons.location_on,
+                                                          _ninoSeleccionado!
+                                                              .residencia,
+                                                          Colors.green),
                                                     ],
                                                   ),
                                                 ),
@@ -696,18 +807,27 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                           ),
                                           const SizedBox(height: 12),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 12),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                colors: [Colors.blue[50]!, Colors.blue[100]!.withValues(alpha: 0.3)],
+                                                colors: [
+                                                  Colors.blue[50]!,
+                                                  Colors.blue[100]!
+                                                      .withValues(alpha: 0.3)
+                                                ],
                                                 begin: Alignment.centerLeft,
                                                 end: Alignment.centerRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: Colors.blue[200]!, width: 1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: Colors.blue[200]!,
+                                                  width: 1),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.blue.withValues(alpha: 0.1),
+                                                  color: Colors.blue
+                                                      .withValues(alpha: 0.1),
                                                   blurRadius: 6,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -716,12 +836,17 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(6),
+                                                  padding:
+                                                      const EdgeInsets.all(6),
                                                   decoration: BoxDecoration(
                                                     color: Colors.blue[500],
-                                                    borderRadius: BorderRadius.circular(8),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
                                                   ),
-                                                  child: const Icon(Icons.info, color: Colors.white, size: 16),
+                                                  child: const Icon(Icons.info,
+                                                      color: Colors.white,
+                                                      size: 16),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Expanded(
@@ -730,7 +855,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       color: Colors.blue[700],
-                                                      fontWeight: FontWeight.w500,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ),
@@ -747,7 +873,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Datos antropométricos
                         _buildSectionCard(
                           title: 'Datos del Paciente',
@@ -770,7 +896,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       label: 'Sexo',
                                       value: _sexo,
                                       items: const ['Masculino', 'Femenino'],
-                                      onChanged: (v) => setState(() => _sexo = v ?? 'Masculino'),
+                                      onChanged: (v) => setState(
+                                          () => _sexo = v ?? 'Masculino'),
                                       icon: Icons.wc,
                                     ),
                                   ),
@@ -806,7 +933,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.info, color: Colors.blue[600], size: 20),
+                                    Icon(Icons.info,
+                                        color: Colors.blue[600], size: 20),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
@@ -833,11 +961,34 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                           color: Colors.orange,
                           child: Column(
                             children: [
-                              _modernCheckbox('Palidez visible', _palidez, Icons.face, (v) => setState(() => _palidez = v ?? false)),
-                              _modernCheckbox('Fatiga o decaimiento', _fatiga, Icons.battery_1_bar, (v) => setState(() => _fatiga = v ?? false)),
-                              _modernCheckbox('Apetito bajo', _apetitoBajo, Icons.restaurant_menu, (v) => setState(() => _apetitoBajo = v ?? false)),
-                              _modernCheckbox('Infecciones frecuentes', _infecciones, Icons.sick, (v) => setState(() => _infecciones = v ?? false)),
-                              _modernCheckbox('Baja ingesta de hierro', _bajaIngestaHierro, Icons.dining, (v) => setState(() => _bajaIngestaHierro = v ?? false)),
+                              _modernCheckbox(
+                                  'Palidez visible',
+                                  _palidez,
+                                  Icons.face,
+                                  (v) => setState(() => _palidez = v ?? false)),
+                              _modernCheckbox(
+                                  'Fatiga o decaimiento',
+                                  _fatiga,
+                                  Icons.battery_1_bar,
+                                  (v) => setState(() => _fatiga = v ?? false)),
+                              _modernCheckbox(
+                                  'Apetito bajo',
+                                  _apetitoBajo,
+                                  Icons.restaurant_menu,
+                                  (v) => setState(
+                                      () => _apetitoBajo = v ?? false)),
+                              _modernCheckbox(
+                                  'Infecciones frecuentes',
+                                  _infecciones,
+                                  Icons.sick,
+                                  (v) => setState(
+                                      () => _infecciones = v ?? false)),
+                              _modernCheckbox(
+                                  'Baja ingesta de hierro',
+                                  _bajaIngestaHierro,
+                                  Icons.dining,
+                                  (v) => setState(
+                                      () => _bajaIngestaHierro = v ?? false)),
                             ],
                           ),
                         ),
@@ -858,14 +1009,17 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                 decoration: BoxDecoration(
                                   color: Colors.purple[50],
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.purple[200]!),
+                                  border:
+                                      Border.all(color: Colors.purple[200]!),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.info_outline, color: Colors.purple[700], size: 20),
+                                        Icon(Icons.info_outline,
+                                            color: Colors.purple[700],
+                                            size: 20),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Instrucciones para la foto:',
@@ -878,10 +1032,14 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    _buildInstruction('1', 'Baje suavemente el párpado inferior'),
-                                    _buildInstruction('2', 'Exponga la conjuntiva (parte interna rosada del ojo)'),
-                                    _buildInstruction('3', 'Tome la foto en un lugar bien iluminado'),
-                                    _buildInstruction('4', 'Mantenga la cámara estable y enfocada'),
+                                    _buildInstruction('1',
+                                        'Baje suavemente el párpado inferior'),
+                                    _buildInstruction('2',
+                                        'Exponga la conjuntiva (parte interna rosada del ojo)'),
+                                    _buildInstruction('3',
+                                        'Tome la foto en un lugar bien iluminado'),
+                                    _buildInstruction('4',
+                                        'Mantenga la cámara estable y enfocada'),
                                   ],
                                 ),
                               ),
@@ -890,28 +1048,37 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                 children: [
                                   Expanded(
                                     child: ElevatedButton.icon(
-                                      onPressed: () => _pickImage(ImageSource.camera),
+                                      onPressed: () =>
+                                          _pickImage(ImageSource.camera),
                                       icon: const Icon(Icons.camera_alt),
                                       label: const Text('Tomar foto'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.purple[600],
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      onPressed: () => _pickImage(ImageSource.gallery),
+                                      onPressed: () =>
+                                          _pickImage(ImageSource.gallery),
                                       icon: const Icon(Icons.photo_library),
                                       label: const Text('Galería'),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.purple[600],
-                                        side: BorderSide(color: Colors.purple[600]!),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        side: BorderSide(
+                                            color: Colors.purple[600]!),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
                                       ),
                                     ),
                                   ),
@@ -924,24 +1091,30 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                   decoration: BoxDecoration(
                                     color: _getColorByPalenessScore(_imgScore!),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: _getBorderColorByPalenessScore(_imgScore!)),
+                                    border: Border.all(
+                                        color: _getBorderColorByPalenessScore(
+                                            _imgScore!)),
                                   ),
                                   child: Row(
                                     children: [
                                       Icon(
-                                        _getIconByPalenessScore(_imgScore!), 
-                                        color: _getIconColorByPalenessScore(_imgScore!), 
+                                        _getIconByPalenessScore(_imgScore!),
+                                        color: _getIconColorByPalenessScore(
+                                            _imgScore!),
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'Análisis de conjuntiva: ${_getPalenessLevel(_imgScore!)}',
                                               style: TextStyle(
-                                                color: _getIconColorByPalenessScore(_imgScore!),
+                                                color:
+                                                    _getIconColorByPalenessScore(
+                                                        _imgScore!),
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 13,
                                               ),
@@ -950,7 +1123,10 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                             Text(
                                               'Score de palidez: ${(_imgScore! * 100).toStringAsFixed(1)}%',
                                               style: TextStyle(
-                                                color: _getIconColorByPalenessScore(_imgScore!).withValues(alpha: 0.8),
+                                                color:
+                                                    _getIconColorByPalenessScore(
+                                                            _imgScore!)
+                                                        .withValues(alpha: 0.8),
                                                 fontSize: 11,
                                               ),
                                             ),
@@ -966,8 +1142,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.file(
-                                    _image!, 
-                                    height: 180, 
+                                    _image!,
+                                    height: 180,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                   ),
@@ -1000,15 +1176,20 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                           ),
                           child: ElevatedButton.icon(
                             onPressed: _calcular,
-                            icon: const Icon(Icons.calculate, color: Colors.white),
+                            icon: const Icon(Icons.calculate,
+                                color: Colors.white),
                             label: const Text(
                               'Evaluar Riesgo de Anemia',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
@@ -1059,9 +1240,7 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
       ),
       items: items
           .map((e) => DropdownMenuItem<String>(
-                value: e, 
-                child: Text(e, overflow: TextOverflow.ellipsis)
-              ))
+              value: e, child: Text(e, overflow: TextOverflow.ellipsis)))
           .toList(),
       onChanged: onChanged,
     );
@@ -1139,7 +1318,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     );
   }
 
-  Widget _modernCheckbox(String label, bool value, IconData icon, void Function(bool?) onChanged) {
+  Widget _modernCheckbox(
+      String label, bool value, IconData icon, void Function(bool?) onChanged) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -1156,7 +1336,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
         onChanged: onChanged,
         title: Row(
           children: [
-            Icon(icon, size: 18, color: value ? Colors.orange[600] : Colors.grey[600]),
+            Icon(icon,
+                size: 18, color: value ? Colors.orange[600] : Colors.grey[600]),
             const SizedBox(width: 8),
             Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
           ],
@@ -1248,20 +1429,20 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     MaterialColor color;
     String titulo;
     IconData iconResult;
-    
+
     switch (r.level) {
       case RiskLevel.alto:
-        color = Colors.red; 
+        color = Colors.red;
         titulo = 'Riesgo Alto';
         iconResult = Icons.warning;
         break;
       case RiskLevel.medio:
-        color = Colors.orange; 
+        color = Colors.orange;
         titulo = 'Riesgo Medio';
         iconResult = Icons.info;
         break;
       case RiskLevel.bajo:
-        color = Colors.green; 
+        color = Colors.green;
         titulo = 'Riesgo Bajo';
         iconResult = Icons.check_circle;
         break;
@@ -1351,9 +1532,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Factores considerados
           Container(
             padding: const EdgeInsets.all(16),
@@ -1392,13 +1573,15 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
                               color: Colors.green[100],
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.check, size: 12, color: Colors.green[700]),
+                            child: Icon(Icons.check,
+                                size: 12, color: Colors.green[700]),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               f,
-                              style: const TextStyle(fontSize: 13, color: Colors.black87),
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.black87),
                             ),
                           ),
                         ],
@@ -1407,9 +1590,9 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Disclaimer
           Container(
             padding: const EdgeInsets.all(12),
@@ -1482,7 +1665,8 @@ class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
     );
   }
 
-  Widget _buildEnhancedInfoChip(IconData icon, String text, MaterialColor color) {
+  Widget _buildEnhancedInfoChip(
+      IconData icon, String text, MaterialColor color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
