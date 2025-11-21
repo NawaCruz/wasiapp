@@ -16,7 +16,7 @@ class NinoModel {
   final String? clasificacionIMC;
   final DateTime fechaRegistro;
   final bool activo;
-  
+
   // Campos del cuestionario de salud
   final String? anemia;
   final String? alimentosHierro;
@@ -25,9 +25,17 @@ class NinoModel {
   final String? palidez;
   final String? disminucionRendimiento;
   final String? evaluacionAnemia;
-  
+
   // Campo para asociar con el usuario
   final String? usuarioId;
+
+  // Campo para la foto de la conjuntiva
+  final String? fotoConjuntivaUrl;
+
+  // Campos para el diagnóstico de anemia
+  final String? diagnosticoAnemiaRiesgo; // 'alto', 'medio', 'bajo'
+  final double? diagnosticoAnemiaScore; // 0-100
+  final DateTime? diagnosticoAnemiaFecha;
 
   NinoModel({
     required this.id,
@@ -53,6 +61,10 @@ class NinoModel {
     this.disminucionRendimiento,
     this.evaluacionAnemia,
     this.usuarioId,
+    this.fotoConjuntivaUrl,
+    this.diagnosticoAnemiaRiesgo,
+    this.diagnosticoAnemiaScore,
+    this.diagnosticoAnemiaFecha,
   });
 
   // Factory constructor para crear desde Map (Firestore)
@@ -71,7 +83,7 @@ class NinoModel {
       talla: (map['talla'] ?? 0.0).toDouble(),
       imc: map['imc']?.toDouble(),
       clasificacionIMC: map['clasificacionIMC'],
-      fechaRegistro: map['fechaRegistro'] != null 
+      fechaRegistro: map['fechaRegistro'] != null
           ? (map['fechaRegistro'] as Timestamp).toDate()
           : DateTime.now(),
       activo: map['activo'] ?? true,
@@ -83,6 +95,12 @@ class NinoModel {
       disminucionRendimiento: map['disminucionRendimiento'],
       evaluacionAnemia: map['evaluacionAnemia'],
       usuarioId: map['usuarioId'],
+      fotoConjuntivaUrl: map['fotoConjuntivaUrl'],
+      diagnosticoAnemiaRiesgo: map['diagnosticoAnemiaRiesgo'],
+      diagnosticoAnemiaScore: map['diagnosticoAnemiaScore']?.toDouble(),
+      diagnosticoAnemiaFecha: map['diagnosticoAnemiaFecha'] != null
+          ? (map['diagnosticoAnemiaFecha'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -111,6 +129,12 @@ class NinoModel {
       'disminucionRendimiento': disminucionRendimiento,
       'evaluacionAnemia': evaluacionAnemia,
       'usuarioId': usuarioId,
+      'fotoConjuntivaUrl': fotoConjuntivaUrl,
+      'diagnosticoAnemiaRiesgo': diagnosticoAnemiaRiesgo,
+      'diagnosticoAnemiaScore': diagnosticoAnemiaScore,
+      'diagnosticoAnemiaFecha': diagnosticoAnemiaFecha != null
+          ? Timestamp.fromDate(diagnosticoAnemiaFecha!)
+          : null,
     };
   }
 
@@ -139,6 +163,10 @@ class NinoModel {
     String? disminucionRendimiento,
     String? evaluacionAnemia,
     String? usuarioId,
+    String? fotoConjuntivaUrl,
+    String? diagnosticoAnemiaRiesgo,
+    double? diagnosticoAnemiaScore,
+    DateTime? diagnosticoAnemiaFecha,
   }) {
     return NinoModel(
       id: id ?? this.id,
@@ -159,11 +187,20 @@ class NinoModel {
       anemia: anemia ?? this.anemia,
       alimentosHierro: alimentosHierro ?? this.alimentosHierro,
       fatiga: fatiga ?? this.fatiga,
-      alimentacionBalanceada: alimentacionBalanceada ?? this.alimentacionBalanceada,
+      alimentacionBalanceada:
+          alimentacionBalanceada ?? this.alimentacionBalanceada,
       palidez: palidez ?? this.palidez,
-      disminucionRendimiento: disminucionRendimiento ?? this.disminucionRendimiento,
+      disminucionRendimiento:
+          disminucionRendimiento ?? this.disminucionRendimiento,
       evaluacionAnemia: evaluacionAnemia ?? this.evaluacionAnemia,
       usuarioId: usuarioId ?? this.usuarioId,
+      fotoConjuntivaUrl: fotoConjuntivaUrl ?? this.fotoConjuntivaUrl,
+      diagnosticoAnemiaRiesgo:
+          diagnosticoAnemiaRiesgo ?? this.diagnosticoAnemiaRiesgo,
+      diagnosticoAnemiaScore:
+          diagnosticoAnemiaScore ?? this.diagnosticoAnemiaScore,
+      diagnosticoAnemiaFecha:
+          diagnosticoAnemiaFecha ?? this.diagnosticoAnemiaFecha,
     );
   }
 
@@ -172,7 +209,8 @@ class NinoModel {
     final ahora = DateTime.now();
     int edad = ahora.year - fechaNacimiento.year;
     if (ahora.month < fechaNacimiento.month ||
-        (ahora.month == fechaNacimiento.month && ahora.day < fechaNacimiento.day)) {
+        (ahora.month == fechaNacimiento.month &&
+            ahora.day < fechaNacimiento.day)) {
       edad--;
     }
     return edad;
@@ -189,11 +227,8 @@ class NinoModel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NinoModel &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+      other is NinoModel && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
 }
-

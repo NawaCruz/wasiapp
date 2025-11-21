@@ -13,60 +13,57 @@ class ErrorHandler {
 
   // Mensajes de error detallados con sugerencias
   static Map<String, ErrorInfo> get errorCatalog => {
-    networkError: ErrorInfo(
-      title: 'Sin conexión a internet',
-      message: 'No se pudo conectar al servidor',
-      suggestion: 'Verifica tu conexión a internet y vuelve a intentar',
-      icon: Icons.wifi_off,
-      color: Colors.orange,
-      actions: ['Reintentar', 'Verificar conexión'],
-    ),
-    
-    authenticationError: ErrorInfo(
-      title: 'Error de autenticación',
-      message: 'Usuario o contraseña incorrectos',
-      suggestion: 'Verifica tus credenciales o restablece tu contraseña',
-      icon: Icons.lock_outline,
-      color: Colors.red,
-      actions: ['Reintentar', 'Olvidé mi contraseña'],
-    ),
-    
-    validationError: ErrorInfo(
-      title: 'Datos incorrectos',
-      message: 'Algunos campos contienen información inválida',
-      suggestion: 'Revisa los campos marcados en rojo y corrige la información',
-      icon: Icons.error_outline,
-      color: Colors.amber,
-      actions: ['Revisar campos'],
-    ),
-    
-    databaseError: ErrorInfo(
-      title: 'Error en la base de datos',
-      message: 'No se pudo guardar la información',
-      suggestion: 'El servidor está experimentando problemas. Intenta más tarde',
-      icon: Icons.storage,
-      color: Colors.red,
-      actions: ['Reintentar', 'Contactar soporte'],
-    ),
-    
-    duplicateError: ErrorInfo(
-      title: 'Información duplicada',
-      message: 'Ya existe un registro con estos datos',
-      suggestion: 'Verifica si el niño ya fue registrado anteriormente',
-      icon: Icons.content_copy,
-      color: Colors.orange,
-      actions: ['Buscar registro', 'Modificar datos'],
-    ),
-    
-    notFoundError: ErrorInfo(
-      title: 'Registro no encontrado',
-      message: 'No se encontró la información solicitada',
-      suggestion: 'El registro puede haber sido eliminado o no existe',
-      icon: Icons.search_off,
-      color: Colors.grey,
-      actions: ['Actualizar lista', 'Crear nuevo'],
-    ),
-  };
+        networkError: ErrorInfo(
+          title: 'Sin conexión a internet',
+          message: 'No se pudo conectar al servidor',
+          suggestion: 'Verifica tu conexión a internet y vuelve a intentar',
+          icon: Icons.wifi_off,
+          color: Colors.orange,
+          actions: ['Reintentar', 'Verificar conexión'],
+        ),
+        authenticationError: ErrorInfo(
+          title: 'Error de autenticación',
+          message: 'Usuario o contraseña incorrectos',
+          suggestion: 'Verifica tus credenciales o restablece tu contraseña',
+          icon: Icons.lock_outline,
+          color: Colors.red,
+          actions: ['Reintentar', 'Olvidé mi contraseña'],
+        ),
+        validationError: ErrorInfo(
+          title: 'Datos incorrectos',
+          message: 'Algunos campos contienen información inválida',
+          suggestion:
+              'Revisa los campos marcados en rojo y corrige la información',
+          icon: Icons.error_outline,
+          color: Colors.amber,
+          actions: ['Revisar campos'],
+        ),
+        databaseError: ErrorInfo(
+          title: 'Error en la base de datos',
+          message: 'No se pudo guardar la información',
+          suggestion:
+              'El servidor está experimentando problemas. Intenta más tarde',
+          icon: Icons.storage,
+          color: Colors.red,
+          actions: ['Reintentar', 'Contactar soporte'],
+        ),
+        duplicateError: ErrorInfo(
+          title: 'Información duplicada',
+          message: 'Ya existe un registro con estos datos',
+          suggestion: 'Verifica si el niño ya fue registrado anteriormente',
+          icon: Icons.content_copy,
+          color: Colors.orange,
+          actions: ['Buscar registro', 'Modificar datos'],
+        ),
+        notFoundError: ErrorInfo(
+          title: 'Registro no encontrado',
+          message: 'No se encontró la información solicitada',
+          suggestion: 'El registro puede haber sido eliminado o no existe',
+          icon: Icons.search_off,
+          color: Colors.grey,
+          actions: ['Actualizar lista', 'Crear nuevo'],
+        ),
+      };
 
   // Crear mensaje de error mejorado
   static Widget buildErrorMessage({
@@ -76,7 +73,7 @@ class ErrorHandler {
     List<VoidCallback>? actionCallbacks,
   }) {
     final errorInfo = errorCatalog[errorCode] ?? _getDefaultError();
-    
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -122,9 +119,9 @@ class ErrorHandler {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Mensaje detallado
           Text(
             customMessage.isNotEmpty ? customMessage : errorInfo.message,
@@ -133,9 +130,9 @@ class ErrorHandler {
               color: Colors.grey.shade800,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Sugerencia
           Container(
             padding: const EdgeInsets.all(12),
@@ -163,7 +160,7 @@ class ErrorHandler {
               ],
             ),
           ),
-          
+
           // Botones de acción
           if (errorInfo.actions.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -172,18 +169,21 @@ class ErrorHandler {
               children: errorInfo.actions.asMap().entries.map((entry) {
                 final index = entry.key;
                 final action = entry.value;
-                
+
                 return ElevatedButton.icon(
-                  onPressed: actionCallbacks != null && index < actionCallbacks.length
-                      ? actionCallbacks[index]
-                      : null,
+                  onPressed:
+                      actionCallbacks != null && index < actionCallbacks.length
+                          ? actionCallbacks[index]
+                          : null,
                   icon: _getActionIcon(action),
                   label: Text(action),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: index == 0 ? errorInfo.color : Colors.grey.shade600,
+                    backgroundColor:
+                        index == 0 ? errorInfo.color : Colors.grey.shade600,
                     foregroundColor: Colors.white,
                     textStyle: const TextStyle(fontSize: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 );
               }).toList(),
@@ -202,7 +202,7 @@ class ErrorHandler {
     VoidCallback? onRetry,
   }) {
     final errorInfo = errorCatalog[errorCode] ?? _getDefaultError();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -251,7 +251,7 @@ class ErrorHandler {
     List<ErrorAction>? actions,
   }) {
     final errorInfo = errorCatalog[errorCode] ?? _getDefaultError();
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -275,9 +275,7 @@ class ErrorHandler {
                 message,
                 style: const TextStyle(fontSize: 14),
               ),
-              
               const SizedBox(height: 16),
-              
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -289,9 +287,8 @@ class ErrorHandler {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.lightbulb_outline, 
-                             size: 16, 
-                             color: Colors.blue.shade600),
+                        Icon(Icons.lightbulb_outline,
+                            size: 16, color: Colors.blue.shade600),
                         const SizedBox(width: 8),
                         Text(
                           'Sugerencia:',
@@ -314,9 +311,7 @@ class ErrorHandler {
                   ],
                 ),
               ),
-              
               const SizedBox(height: 12),
-              
               Text(
                 'Código de error: $errorCode',
                 style: TextStyle(
@@ -331,14 +326,13 @@ class ErrorHandler {
         actions: [
           if (actions != null)
             ...actions.map((action) => TextButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                action.onPressed?.call();
-              },
-              icon: Icon(action.icon),
-              label: Text(action.label),
-            )),
-          
+                  onPressed: () {
+                    Navigator.pop(context);
+                    action.onPressed?.call();
+                  },
+                  icon: Icon(action.icon),
+                  label: Text(action.label),
+                )),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cerrar'),
@@ -433,19 +427,21 @@ mixin ErrorHandlerMixin {
 
   // Mapeo de excepciones a códigos de error
   void handleException(Exception e) {
-    if (e.toString().contains('network') || 
+    if (e.toString().contains('network') ||
         e.toString().contains('internet') ||
         e.toString().contains('connection')) {
       setError(ErrorHandler.networkError, 'Sin conexión a internet');
-    } else if (e.toString().contains('permission') || 
-               e.toString().contains('unauthorized')) {
-      setError(ErrorHandler.permissionError, 'Sin permisos para realizar esta acción');
-    } else if (e.toString().contains('not-found') || 
-               e.toString().contains('does not exist')) {
+    } else if (e.toString().contains('permission') ||
+        e.toString().contains('unauthorized')) {
+      setError(ErrorHandler.permissionError,
+          'Sin permisos para realizar esta acción');
+    } else if (e.toString().contains('not-found') ||
+        e.toString().contains('does not exist')) {
       setError(ErrorHandler.notFoundError, 'Registro no encontrado');
-    } else if (e.toString().contains('duplicate') || 
-               e.toString().contains('already exists')) {
-      setError(ErrorHandler.duplicateError, 'Ya existe un registro con estos datos');
+    } else if (e.toString().contains('duplicate') ||
+        e.toString().contains('already exists')) {
+      setError(
+          ErrorHandler.duplicateError, 'Ya existe un registro con estos datos');
     } else {
       setError(ErrorHandler.serverError, 'Error del servidor: ${e.toString()}');
     }

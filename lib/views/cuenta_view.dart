@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +35,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     final authController = Provider.of<AuthController>(context, listen: false);
     final ninoController = Provider.of<NinoController>(context, listen: false);
     final usuarioId = authController.usuarioActual?.id;
-    
+
     if (usuarioId != null) {
       await ninoController.cargarNinosPorUsuario(usuarioId);
       await ninoController.cargarEstadisticasUsuario(usuarioId);
@@ -45,7 +46,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     setState(() => _isLoadingRefresh = true);
     await _cargarDatos();
     setState(() => _isLoadingRefresh = false);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -66,7 +67,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
         actions: [
           IconButton(
             onPressed: _isLoadingRefresh ? null : _refrescarDatos,
-            icon: _isLoadingRefresh 
+            icon: _isLoadingRefresh
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -122,7 +123,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
             children: [
               // Tab 1: Perfil del usuario
               _buildPerfilTab(authController, ninoController),
-              
+
               // Tab 2: Registros de niños
               _buildRegistrosTab(ninoController),
             ],
@@ -132,7 +133,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildPerfilTab(AuthController authController, NinoController ninoController) {
+  Widget _buildPerfilTab(
+      AuthController authController, NinoController ninoController) {
     final usuario = authController.usuarioActual;
     final stats = ninoController.estadisticas;
 
@@ -172,13 +174,13 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
 
     return RefreshIndicator(
       onRefresh: _refrescarDatos,
-      child: ninos.isEmpty 
-        ? _buildEmptyRegistrosState()
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: ninos.length,
-            itemBuilder: (context, index) => _buildRegistroCard(ninos[index]),
-          ),
+      child: ninos.isEmpty
+          ? _buildEmptyRegistrosState()
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: ninos.length,
+              itemBuilder: (context, index) => _buildRegistroCard(ninos[index]),
+            ),
     );
   }
 
@@ -266,8 +268,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
             Text(
               'Mis Estadísticas',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -312,7 +314,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Container(
@@ -345,7 +348,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
 
   Widget _buildActivitySummaryCard(NinoController ninoController) {
     final registrosRecientes = ninoController.ninos.take(3).toList();
-    
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -359,8 +362,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                 Text(
                   'Actividad Reciente',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 TextButton(
                   onPressed: () => _tabController.animateTo(1),
@@ -369,7 +372,6 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 12),
-            
             if (registrosRecientes.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(16),
@@ -383,28 +385,28 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
               )
             else
               ...registrosRecientes.map((nino) => ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
-                      : Colors.pink.shade100,
-                  child: Icon(
-                    nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: nino.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
-                        : Colors.pink.shade700,
-                  ),
-                ),
-                title: Text(nino.nombreCompleto),
-                subtitle: Text(
-                  'Registrado: ${DateFormat('dd/MM/yyyy').format(nino.fechaRegistro)}',
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.grey.shade400,
-                ),
-                onTap: () => _verDetallesNino(nino),
-              )),
+                    leading: CircleAvatar(
+                      backgroundColor: nino.sexo == 'Masculino'
+                          ? Colors.blue.shade100
+                          : Colors.pink.shade100,
+                      child: Icon(
+                        nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                        color: nino.sexo == 'Masculino'
+                            ? Colors.blue.shade700
+                            : Colors.pink.shade700,
+                      ),
+                    ),
+                    title: Text(nino.nombreCompleto),
+                    subtitle: Text(
+                      'Registrado: ${DateFormat('dd/MM/yyyy').format(nino.fechaRegistro)}',
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey.shade400,
+                    ),
+                    onTap: () => _verDetallesNino(nino),
+                  )),
           ],
         ),
       ),
@@ -475,7 +477,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed('/registro_flow'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/registro_flow'),
               icon: const Icon(Icons.add),
               label: const Text('Registrar Niño'),
               style: ElevatedButton.styleFrom(
@@ -505,13 +508,13 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
+                  backgroundColor: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade100
                       : Colors.pink.shade100,
                   child: Icon(
                     nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: nino.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
+                    color: nino.sexo == 'Masculino'
+                        ? Colors.blue.shade700
                         : Colors.pink.shade700,
                   ),
                 ),
@@ -565,7 +568,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Información resumida
             Row(
               children: [
@@ -575,7 +578,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             Row(
               children: [
                 if (nino.clasificacionIMC != null) ...[
@@ -668,6 +671,19 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
     }
   }
 
+  Color _getRiskColor(String riesgo) {
+    switch (riesgo.toLowerCase()) {
+      case 'alto':
+        return Colors.red.shade700;
+      case 'medio':
+        return Colors.orange.shade700;
+      case 'bajo':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
   void _handleRegistroAction(String action, dynamic nino) {
     switch (action) {
       case 'view':
@@ -709,13 +725,13 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
+                  backgroundColor: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade100
                       : Colors.pink.shade100,
                   child: Icon(
                     nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: nino.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
+                    color: nino.sexo == 'Masculino'
+                        ? Colors.blue.shade700
                         : Colors.pink.shade700,
                   ),
                 ),
@@ -748,7 +764,7 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
               ],
             ),
             const Divider(height: 20),
-            
+
             // Contenido
             Expanded(
               child: SingleChildScrollView(
@@ -758,34 +774,403 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                     _buildDetailSection('Información Personal', [
                       _buildDetailRow('Edad', '${nino.edad} años'),
                       _buildDetailRow('Sexo', nino.sexo),
-                      _buildDetailRow('Fecha de nacimiento', 
-                          DateFormat('dd/MM/yyyy').format(nino.fechaNacimiento)),
+                      _buildDetailRow(
+                          'Fecha de nacimiento',
+                          DateFormat('dd/MM/yyyy')
+                              .format(nino.fechaNacimiento)),
                       _buildDetailRow('Residencia', nino.residencia),
                     ]),
-                    
+
                     _buildDetailSection('Tutor/Responsable', [
                       _buildDetailRow('Nombre', nino.nombreTutor),
                       _buildDetailRow('DNI', nino.dniPadre),
                     ]),
-                    
+
                     _buildDetailSection('Medidas Antropométricas', [
                       _buildDetailRow('Peso', '${nino.peso} kg'),
                       _buildDetailRow('Talla', '${nino.talla} cm'),
-                      _buildDetailRow('IMC', nino.imc?.toStringAsFixed(2) ?? 'N/A'),
+                      _buildDetailRow(
+                          'IMC', nino.imc?.toStringAsFixed(2) ?? 'N/A'),
                       if (nino.clasificacionIMC != null)
-                        _buildDetailRow('Clasificación IMC', nino.clasificacionIMC!,
+                        _buildDetailRow(
+                            'Clasificación IMC', nino.clasificacionIMC!,
                             color: _getIMCTextColor(nino.clasificacionIMC!)),
                     ]),
-                    
+
+                    // Sección de historial clínico - Foto de conjuntiva
+                    if (nino.fotoConjuntivaUrl != null &&
+                        nino.fotoConjuntivaUrl!.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título de la sección (solo lectura)
+                          Row(
+                            children: [
+                              Icon(Icons.medical_information,
+                                  color: Colors.blue.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Historial Clínico - Análisis Visual',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Contenedor de la foto con análisis
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: Colors.blue.shade200, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Etiqueta superior
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(14),
+                                      topRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.camera_alt,
+                                          size: 16,
+                                          color: Colors.blue.shade700),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Foto de Conjuntiva',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Foto
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 220,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        border: Border.all(
+                                            color: Colors.grey[300]!),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Image.file(
+                                        File(nino.fotoConjuntivaUrl!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.image_not_supported,
+                                                    size: 48,
+                                                    color: Colors.grey[400]),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Imagen no disponible',
+                                                  style: TextStyle(
+                                                      color: Colors.grey[600]),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // Nota informativa
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(14),
+                                      bottomRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.info_outline,
+                                          size: 16,
+                                          color: Colors.green.shade700),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Última foto capturada en diagnóstico de anemia',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
+                    // Sección de diagnóstico de anemia
+                    if (nino.diagnosticoAnemiaRiesgo != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título
+                          Row(
+                            children: [
+                              Icon(Icons.health_and_safety,
+                                  color: Colors.blue.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Diagnóstico de Anemia',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Contenedor del diagnóstico
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: _getRiskColor(
+                                          nino.diagnosticoAnemiaRiesgo!)
+                                      .withValues(alpha: 0.5),
+                                  width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _getRiskColor(
+                                          nino.diagnosticoAnemiaRiesgo!)
+                                      .withValues(alpha: 0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 14),
+                                  decoration: BoxDecoration(
+                                    color: _getRiskColor(
+                                            nino.diagnosticoAnemiaRiesgo!)
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(14),
+                                      topRight: Radius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.assignment,
+                                          size: 18,
+                                          color: _getRiskColor(
+                                              nino.diagnosticoAnemiaRiesgo!)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Resultado del Análisis',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: _getRiskColor(
+                                              nino.diagnosticoAnemiaRiesgo!),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Contenido principal
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Badge de riesgo principal
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: _getRiskColor(nino
+                                                  .diagnosticoAnemiaRiesgo!),
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: _getRiskColor(nino
+                                                          .diagnosticoAnemiaRiesgo!)
+                                                      .withValues(alpha: 0.3),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              'Riesgo ${nino.diagnosticoAnemiaRiesgo!.toUpperCase()}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          if (nino.diagnosticoAnemiaScore !=
+                                              null)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.analytics,
+                                                      size: 16,
+                                                      color: Colors.grey[700]),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Score: ${nino.diagnosticoAnemiaScore!.toStringAsFixed(1)}',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 14),
+                                      const Divider(height: 1),
+                                      const SizedBox(height: 14),
+
+                                      // Fecha del diagnóstico
+                                      if (nino.diagnosticoAnemiaFecha != null)
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade50,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.calendar_today,
+                                                  size: 16,
+                                                  color: Colors.blue.shade700),
+                                              const SizedBox(width: 8),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Fecha del diagnóstico',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    DateFormat(
+                                                            'dd/MM/yyyy HH:mm')
+                                                        .format(nino
+                                                            .diagnosticoAnemiaFecha!),
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          Colors.blue.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
                     _buildDetailSection('Registro', [
-                      _buildDetailRow('Fecha', 
-                          DateFormat('dd/MM/yyyy HH:mm').format(nino.fechaRegistro)),
+                      _buildDetailRow(
+                          'Fecha',
+                          DateFormat('dd/MM/yyyy HH:mm')
+                              .format(nino.fechaRegistro)),
                     ]),
                   ],
                 ),
               ),
             ),
-            
+
             // Botones
             const SizedBox(height: 16),
             Row(
@@ -797,7 +1182,8 @@ class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
                     _editarNino(nino);
                   },
                   icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                  label: Text('Editar', style: TextStyle(color: Colors.blue.shade700)),
+                  label: Text('Editar',
+                      style: TextStyle(color: Colors.blue.shade700)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),

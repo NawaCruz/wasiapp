@@ -14,19 +14,31 @@ import 'firebase_options.dart';
 import 'core/constants/app_constants.dart';
 import 'core/routes/rutas_app.dart';
 
+// ML Provider
+import 'providers/ml_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  
+  debugPrint('🚀 Iniciando aplicación...');
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase inicializado');
+  } catch (e) {
+    debugPrint('❌ Error Firebase: $e');
+  }
 
-  // Registramos los controllers globalmente en la raíz del app
-  // Usar MultiProvider para que HomeView (y otras rutas) puedan acceder a NinoController
+  debugPrint('📱 Lanzando app...');
+  
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => NinoController()),
+        ChangeNotifierProvider(create: (_) => MLProvider()),
       ],
       child: const AplicacionWasi(),
     ),
@@ -67,8 +79,7 @@ class AplicacionWasi extends StatelessWidget {
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
           fillColor: Colors.grey[50],
         ),

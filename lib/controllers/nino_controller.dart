@@ -36,23 +36,27 @@ class NinoController extends ChangeNotifier {
 
   // Cargar niños por usuario
   Future<void> cargarNinosPorUsuario(String usuarioId) async {
-    try {
-      _setLoading(true);
-      _clearError();
+    debugPrint('🔄 Controller: Iniciando carga para usuario: $usuarioId');
+    
+    // NO MOSTRAR LOADING - cargar en background
+    _clearError();
 
-      debugPrint('DEBUG Controller: Cargando niños para usuario: $usuarioId');
-      _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId);
+    try {
+      // Timeout agresivo de 5 segundos
+      _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId)
+          .timeout(const Duration(seconds: 5));
+      
       _ninosFiltrados = List.from(_ninos);
-      debugPrint('DEBUG Controller: Niños cargados: ${_ninos.length}');
-      for (var nino in _ninos) {
-        debugPrint('DEBUG Controller: - ${nino.nombres} ${nino.apellidos} (Usuario: ${nino.usuarioId})');
-      }
+      
+      debugPrint('✅ Controller: ${_ninos.length} niños cargados');
       notifyListeners();
+      
     } catch (e) {
-      debugPrint('DEBUG Controller: Error cargando niños: $e');
-      _setError('Error al cargar niños del usuario: ${e.toString()}');
-    } finally {
-      _setLoading(false);
+      debugPrint('❌ Controller: Error: $e');
+      _ninos = [];
+      _ninosFiltrados = [];
+      _setError('Sin conexión o sin datos');
+      notifyListeners();
     }
   }
 
@@ -119,10 +123,12 @@ class NinoController extends ChangeNotifier {
         evaluacionAnemia: evaluacionAnemia,
       );
 
-      debugPrint('DEBUG: Creando niño $nombres $apellidos para usuario $usuarioId');
+      debugPrint(
+          'DEBUG: Creando niño $nombres $apellidos para usuario $usuarioId');
       await NinoService.crearNino(nuevoNino);
       debugPrint('DEBUG: Niño creado exitosamente, recargando lista...');
-      await cargarNinosPorUsuario(usuarioId); // Recargar solo los niños del usuario
+      await cargarNinosPorUsuario(
+          usuarioId); // Recargar solo los niños del usuario
       return true;
     } catch (e) {
       _setError('Error al crear registro: ${e.toString()}');
@@ -140,8 +146,10 @@ class NinoController extends ChangeNotifier {
 
       // Recalcular IMC si cambió peso o talla
       final imc = IMCCalculator.calcularIMC(nino.peso, nino.talla);
-      final edad = DateTime.now().difference(nino.fechaNacimiento).inDays ~/ 365;
-      final clasificacion = IMCCalculator.clasificarIMCNinos(imc, edad, nino.sexo);
+      final edad =
+          DateTime.now().difference(nino.fechaNacimiento).inDays ~/ 365;
+      final clasificacion =
+          IMCCalculator.clasificarIMCNinos(imc, edad, nino.sexo);
 
       final ninoActualizado = nino.copyWith(
         imc: imc,
@@ -149,14 +157,14 @@ class NinoController extends ChangeNotifier {
       );
 
       await NinoService.actualizarNino(ninoActualizado);
-      
+
       // Recargar según el contexto
       if (usuarioId != null) {
         await cargarNinosPorUsuario(usuarioId);
       } else {
         await cargarNinos();
       }
-      
+
       return true;
     } catch (e) {
       _setError('Error al actualizar registro: ${e.toString()}');
@@ -173,14 +181,14 @@ class NinoController extends ChangeNotifier {
       _clearError();
 
       await NinoService.eliminarNino(id);
-      
+
       // Recargar según el contexto
       if (usuarioId != null) {
         await cargarNinosPorUsuario(usuarioId);
       } else {
         await cargarNinos();
       }
-      
+
       return true;
     } catch (e) {
       _setError('Error al eliminar registro: ${e.toString()}');
@@ -230,10 +238,14 @@ class NinoController extends ChangeNotifier {
 
   // Filtrar por clasificación IMC
   void filtrarPorIMC(String? clasificacion) {
-    if (clasificacion == null || clasificacion.isEmpty || clasificacion == 'Todas') {
+    if (clasificacion == null ||
+        clasificacion.isEmpty ||
+        clasificacion == 'Todas') {
       _ninosFiltrados = List.from(_ninos);
     } else {
-      _ninosFiltrados = _ninos.where((nino) => nino.clasificacionIMC == clasificacion).toList();
+      _ninosFiltrados = _ninos
+          .where((nino) => nino.clasificacionIMC == clasificacion)
+          .toList();
     }
     notifyListeners();
   }
@@ -256,15 +268,17 @@ class NinoController extends ChangeNotifier {
   // Cargar estadísticas por usuario
   Future<void> cargarEstadisticasUsuario(String usuarioId) async {
     try {
-      _setLoading(true);
-      _clearError();
-
-      _estadisticas = await NinoService.obtenerEstadisticasUsuario(usuarioId);
+      debugPrint('📊 Controller: Cargando estadísticas...');
+      
+      _estadisticas = await NinoService.obtenerEstadisticasUsuario(usuarioId)
+          .timeout(const Duration(seconds: 3));
+      
+      debugPrint('✅ Controller: Estadísticas OK');
       notifyListeners();
     } catch (e) {
-      _setError('Error al cargar estadísticas del usuario: ${e.toString()}');
-    } finally {
-      _setLoading(false);
+      debugPrint('❌ Controller: Error estadísticas');
+      _estadisticas = {};
+      notifyListeners();
     }
   }
 
@@ -321,8 +335,9 @@ class NinoController extends ChangeNotifier {
     try {
       debugPrint('DEBUG Controller: Iniciando debug de todos los datos...');
       final todosLosNinos = await NinoService.obtenerTodosLosNinos();
-      debugPrint('DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
-      
+      debugPrint(
+          'DEBUG Controller: Total niños en Firestore: ${todosLosNinos.length}');
+
       for (var nino in todosLosNinos) {
         debugPrint('DEBUG Controller: - ${nino.nombres} ${nino.apellidos}');
         debugPrint('  ID: ${nino.id}');

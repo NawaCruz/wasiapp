@@ -8,7 +8,7 @@ import '../models/nino_model.dart';
 
 class RegistroNinoFlow extends StatefulWidget {
   final NinoModel? ninoAEditar; // Parámetro opcional para edición
-  
+
   const RegistroNinoFlow({
     super.key,
     this.ninoAEditar,
@@ -55,7 +55,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
 
   final List<String> _opcionesSexo = ['Seleccionar', 'Masculino', 'Femenino'];
   final List<String> _opcionesSiNo = ['Seleccionar', 'Sí', 'No'];
-  final List<String> _opcionesResidencia = ['Huancayo', 'El Tambo', 'Chilca', 'Pilcomayo', 'Sicaya', 'Otra'];
+  final List<String> _opcionesResidencia = [
+    'Huancayo',
+    'El Tambo',
+    'Chilca',
+    'Pilcomayo',
+    'Sicaya',
+    'Otra'
+  ];
 
   @override
   void initState() {
@@ -74,11 +81,11 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
     _dniPadreController.text = nino.dniPadre;
     _pesoController.text = nino.peso.toString();
     _tallaController.text = nino.talla.toString();
-    
+
     _fechaNacimiento = nino.fechaNacimiento;
     _sexoSeleccionado = nino.sexo;
     _residenciaSeleccionada = nino.residencia;
-    
+
     // Datos del cuestionario de salud
     _anemia = nino.anemia;
     _alimentosHierro = nino.alimentosHierro;
@@ -86,12 +93,11 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
     _alimentacionBalanceada = nino.alimentacionBalanceada;
     _palidez = nino.palidez;
     _disminucionRendimiento = nino.disminucionRendimiento;
-    
+
     // Medidas calculadas
     _imcCalculado = nino.imc;
     _clasificacionIMC = nino.clasificacionIMC;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +132,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   spreadRadius: 0,
                   blurRadius: 10,
                   offset: const Offset(0, 2),
@@ -162,7 +168,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   child: LinearProgressIndicator(
                     value: (_currentStep + 1) / 3,
                     backgroundColor: const Color(0xFFE3F2FD),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
                     minHeight: 8,
                   ),
                 ),
@@ -241,7 +248,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   String _getTitleByStep() {
     final isEditing = widget.ninoAEditar != null;
     final prefix = isEditing ? 'Editar: ' : '';
-    
+
     switch (_currentStep) {
       case 0:
         return '${prefix}Datos Básicos';
@@ -281,7 +288,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       spreadRadius: 0,
                       blurRadius: 20,
                       offset: const Offset(0, 4),
@@ -296,7 +303,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1976D2).withOpacity(0.1),
+                            color:
+                                const Color(0xFF1976D2).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -364,7 +372,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                     InkWell(
                       onTap: () => _selectDate(context),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                         decoration: BoxDecoration(
                           border: Border.all(color: const Color(0xFFE0E0E0)),
                           borderRadius: BorderRadius.circular(12),
@@ -372,17 +381,19 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today, color: Color(0xFF1976D2), size: 20),
+                            const Icon(Icons.calendar_today,
+                                color: Color(0xFF1976D2), size: 20),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _fechaNacimiento == null
                                     ? 'Seleccione fecha de nacimiento'
-                                    : DateFormat('dd/MM/yyyy').format(_fechaNacimiento!),
+                                    : DateFormat('dd/MM/yyyy')
+                                        .format(_fechaNacimiento!),
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: _fechaNacimiento == null 
-                                      ? const Color(0xFF9E9E9E) 
+                                  color: _fechaNacimiento == null
+                                      ? const Color(0xFF9E9E9E)
                                       : const Color(0xFF333333),
                                 ),
                               ),
@@ -441,7 +452,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       spreadRadius: 0,
                       blurRadius: 20,
                       offset: const Offset(0, 4),
@@ -456,7 +467,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4CAF50).withOpacity(0.1),
+                            color:
+                                const Color(0xFF4CAF50).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -521,7 +533,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1976D2).withOpacity(0.3),
+                      color: const Color(0xFF1976D2).withValues(alpha: 0.3),
                       spreadRadius: 0,
                       blurRadius: 12,
                       offset: const Offset(0, 4),
@@ -530,12 +542,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    if (_formKey1.currentState!.validate() && _fechaNacimiento != null) {
+                    if (_formKey1.currentState!.validate() &&
+                        _fechaNacimiento != null) {
                       _nextStep();
                     } else if (_fechaNacimiento == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Por favor, seleccione la fecha de nacimiento'),
+                          content: Text(
+                              'Por favor, seleccione la fecha de nacimiento'),
                           backgroundColor: Color(0xFFE53935),
                         ),
                       );
@@ -596,7 +610,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       spreadRadius: 0,
                       blurRadius: 20,
                       offset: const Offset(0, 4),
@@ -611,7 +625,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4CAF50).withOpacity(0.1),
+                            color:
+                                const Color(0xFF4CAF50).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -692,17 +707,17 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       'Por favor, indique si presenta palidez',
                     ),
                     const SizedBox(height: 20),
-                      _buildHealthQuestion(
-                        '¿Ha mostrado el niño/a disminución en el rendimiento escolar o falta de concentración?',
-                        Icons.school,
-                        _disminucionRendimiento,
-                        (value) {
-                          setState(() {
-                            _disminucionRendimiento = value;
-                          });
-                        },
-                        'Por favor, indique si ha notado disminución en el rendimiento',
-                      ),
+                    _buildHealthQuestion(
+                      '¿Ha mostrado el niño/a disminución en el rendimiento escolar o falta de concentración?',
+                      Icons.school,
+                      _disminucionRendimiento,
+                      (value) {
+                        setState(() {
+                          _disminucionRendimiento = value;
+                        });
+                      },
+                      'Por favor, indique si ha notado disminución en el rendimiento',
+                    ),
                   ],
                 ),
               ),
@@ -753,7 +768,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4CAF50).withOpacity(0.3),
+                            color:
+                                const Color(0xFF4CAF50).withValues(alpha: 0.3),
                             spreadRadius: 0,
                             blurRadius: 12,
                             offset: const Offset(0, 4),
@@ -824,7 +840,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       spreadRadius: 0,
                       blurRadius: 20,
                       offset: const Offset(0, 4),
@@ -839,7 +855,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF9800).withOpacity(0.1),
+                            color:
+                                const Color(0xFFFF9800).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -865,7 +882,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       label: 'Peso (kg)',
                       hint: 'Ej: 25.5',
                       icon: Icons.monitor_weight,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'El peso es obligatorio';
@@ -883,11 +901,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                       onChanged: (value) {
                         // Limpiar automáticamente caracteres no válidos
-                        final cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
+                        final cleanValue =
+                            value.replaceAll(RegExp(r'[^0-9.]'), '');
                         if (cleanValue != value) {
-                          _pesoController.value = _pesoController.value.copyWith(
+                          _pesoController.value =
+                              _pesoController.value.copyWith(
                             text: cleanValue,
-                            selection: TextSelection.collapsed(offset: cleanValue.length),
+                            selection: TextSelection.collapsed(
+                                offset: cleanValue.length),
                           );
                         }
                         _calcularIMC();
@@ -899,7 +920,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       label: 'Talla (cm)',
                       hint: 'Ej: 120',
                       icon: Icons.height,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'La talla es obligatoria';
@@ -917,11 +939,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                       },
                       onChanged: (value) {
                         // Limpiar automáticamente caracteres no válidos
-                        final cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
+                        final cleanValue =
+                            value.replaceAll(RegExp(r'[^0-9.]'), '');
                         if (cleanValue != value) {
-                          _tallaController.value = _tallaController.value.copyWith(
+                          _tallaController.value =
+                              _tallaController.value.copyWith(
                             text: cleanValue,
-                            selection: TextSelection.collapsed(offset: cleanValue.length),
+                            selection: TextSelection.collapsed(
+                                offset: cleanValue.length),
                           );
                         }
                         _calcularIMC();
@@ -934,13 +959,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              const Color(0xFF1976D2).withOpacity(0.1),
-                              const Color(0xFF1976D2).withOpacity(0.05),
+                              const Color(0xFF1976D2).withValues(alpha: 0.1),
+                              const Color(0xFF1976D2).withValues(alpha: 0.05),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF1976D2).withOpacity(0.2),
+                            color:
+                                const Color(0xFF1976D2).withValues(alpha: 0.2),
                           ),
                         ),
                         child: Column(
@@ -979,7 +1005,7 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: Colors.grey.withValues(alpha: 0.1),
                                     spreadRadius: 0,
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
@@ -990,7 +1016,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'IMC: ${_imcCalculado!.toStringAsFixed(2)}',
@@ -1009,26 +1036,28 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                             color: _getColorClasificacion(),
                                           ),
                                         ),
-                                                                                  const SizedBox(height: 4),
-                                          Text(
-                                            'Evaluación de anemia: ${_evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!)}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!) == 'Alta Probabilidad de anemia' 
-                                                  ? Colors.red 
-                                                  : Colors.orange,
-                                            ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Evaluación de anemia: ${_evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!)}',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: _evaluarRiesgoAnemia(
+                                                        _imcCalculado!,
+                                                        _clasificacionIMC!) ==
+                                                    'Alta Probabilidad de anemia'
+                                                ? Colors.red
+                                                : Colors.orange,
                                           ),
-
-                                         
+                                        ),
                                       ],
                                     ),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: _getColorClasificacion().withOpacity(0.1),
+                                      color: _getColorClasificacion()
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
@@ -1098,7 +1127,10 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: (_isLoading ? const Color(0xFF9E9E9E) : const Color(0xFF4CAF50)).withOpacity(0.3),
+                            color: (_isLoading
+                                    ? const Color(0xFF9E9E9E)
+                                    : const Color(0xFF4CAF50))
+                                .withValues(alpha: 0.3),
                             spreadRadius: 0,
                             blurRadius: 12,
                             offset: const Offset(0, 4),
@@ -1114,12 +1146,13 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: _isLoading 
+                        icon: _isLoading
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                   strokeWidth: 2,
                                 ),
                               )
@@ -1129,9 +1162,13 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
                                 size: 20,
                               ),
                         label: Text(
-                          _isLoading 
-                            ? (widget.ninoAEditar != null ? 'Actualizando...' : 'Registrando...') 
-                            : (widget.ninoAEditar != null ? 'Actualizar Datos' : 'Registrar Niño'),
+                          _isLoading
+                              ? (widget.ninoAEditar != null
+                                  ? 'Actualizando...'
+                                  : 'Registrando...')
+                              : (widget.ninoAEditar != null
+                                  ? 'Actualizar Datos'
+                                  : 'Registrar Niño'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -1176,7 +1213,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
         ),
         filled: true,
         fillColor: const Color(0xFFFAFAFA),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         isDense: true,
       ),
       keyboardType: keyboardType,
@@ -1211,7 +1249,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
         ),
         filled: true,
         fillColor: const Color(0xFFFAFAFA),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         isDense: true,
       ),
       items: items.map((String item) {
@@ -1280,7 +1319,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
               ),
               filled: true,
               fillColor: const Color(0xFFFAFAFA),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               isDense: true,
             ),
             items: _opcionesSiNo.map((String option) {
@@ -1311,7 +1351,8 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _fechaNacimiento ?? DateTime.now().subtract(const Duration(days: 365 * 5)),
+      initialDate: _fechaNacimiento ??
+          DateTime.now().subtract(const Duration(days: 365 * 5)),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -1339,14 +1380,14 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
       // Limpiar valores antes de convertir
       final pesoText = _pesoController.text.trim().replaceAll(',', '.');
       final tallaText = _tallaController.text.trim().replaceAll(',', '.');
-      
+
       final peso = double.tryParse(pesoText);
       final talla = double.tryParse(tallaText);
-      
+
       if (peso != null && talla != null && talla > 0 && peso > 0) {
         final tallaEnMetros = talla / 100;
         final imc = peso / (tallaEnMetros * tallaEnMetros);
-        
+
         setState(() {
           _imcCalculado = imc;
           _clasificacionIMC = _clasificarIMC(imc);
@@ -1366,10 +1407,12 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
   }
 
   String _clasificarIMC(double imc) {
-    if (_fechaNacimiento == null) return 'No se puede calcular sin fecha de nacimiento';
-    
+    if (_fechaNacimiento == null) {
+      return 'No se puede calcular sin fecha de nacimiento';
+    }
+
     final edad = DateTime.now().year - _fechaNacimiento!.year;
-    
+
     if (edad < 2) {
       // Para menores de 2 años, usar percentiles específicos
       if (imc < 14.0) return 'Bajo peso';
@@ -1396,21 +1439,24 @@ class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
       return 'Obesidad';
     }
   }
+
   // MÉTODO NUEVO - AGREGAR DESPUÉS DEL ANTERIOR
-String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
-  // Si el IMC está por debajo del promedio
-  if (clasificacionIMC == 'Bajo peso') {
-    return 'Alta Probabilidad de anemia';
+  String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
+    // Si el IMC está por debajo del promedio
+    if (clasificacionIMC == 'Bajo peso') {
+      return 'Alta Probabilidad de anemia';
+    }
+    // Si el IMC está por encima del promedio
+    else if (clasificacionIMC == 'Sobrepeso' ||
+        clasificacionIMC == 'Obesidad') {
+      return 'Riesgo moderado de anemia - Evaluar con profesional';
+    }
+    // Para IMC normal
+    else {
+      return 'Riesgo bajo de anemia';
+    }
   }
-  // Si el IMC está por encima del promedio 
-  else if (clasificacionIMC == 'Sobrepeso' || clasificacionIMC == 'Obesidad') {
-    return 'Riesgo moderado de anemia - Evaluar con profesional';
-  }
-  // Para IMC normal
-  else {
-    return 'Riesgo bajo de anemia';
-  }
-}
+
   Color _getColorClasificacion() {
     switch (_clasificacionIMC) {
       case 'Bajo peso':
@@ -1461,7 +1507,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
 
   Future<void> _registrarNino() async {
     if (!_formKey3.currentState!.validate()) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -1470,12 +1516,13 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
       // Limpiar y validar los valores numéricos de forma segura
       final pesoText = _pesoController.text.trim().replaceAll(',', '.');
       final tallaText = _tallaController.text.trim().replaceAll(',', '.');
-      
+
       final peso = double.tryParse(pesoText);
       final talla = double.tryParse(tallaText);
-      
+
       if (peso == null || talla == null) {
-        throw Exception('Error en los valores numéricos ingresados. Por favor, verifique que solo contengan números.');
+        throw Exception(
+            'Error en los valores numéricos ingresados. Por favor, verifique que solo contengan números.');
       }
 
       if (peso <= 0 || talla <= 0) {
@@ -1483,19 +1530,22 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
       }
 
       // Obtener controladores
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final ninoController = Provider.of<NinoController>(context, listen: false);
-      
+      final authController =
+          Provider.of<AuthController>(context, listen: false);
+      final ninoController =
+          Provider.of<NinoController>(context, listen: false);
+
       final usuarioId = authController.usuarioActual?.id;
       if (usuarioId == null) {
         throw Exception('Usuario no autenticado');
       }
 
       // Evaluar riesgo de anemia
-      final evaluacionAnemia = _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!);
+      final evaluacionAnemia =
+          _evaluarRiesgoAnemia(_imcCalculado!, _clasificacionIMC!);
 
       bool exito;
-      
+
       if (widget.ninoAEditar != null) {
         // Actualizar niño existente
         final ninoActualizado = widget.ninoAEditar!.copyWith(
@@ -1517,8 +1567,9 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
           disminucionRendimiento: _disminucionRendimiento,
           evaluacionAnemia: evaluacionAnemia,
         );
-        
-        exito = await ninoController.actualizarNino(ninoActualizado, usuarioId: usuarioId);
+
+        exito = await ninoController.actualizarNino(ninoActualizado,
+            usuarioId: usuarioId);
       } else {
         // Crear niño nuevo
         exito = await ninoController.crearNino(
@@ -1544,7 +1595,8 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
       }
 
       if (!exito) {
-        throw Exception(ninoController.errorMessage ?? 'Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'} el niño');
+        throw Exception(ninoController.errorMessage ??
+            'Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'} el niño');
       }
 
       if (mounted) {
@@ -1559,7 +1611,9 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'}: $e')),
+                Expanded(
+                    child: Text(
+                        'Error al ${widget.ninoAEditar != null ? 'actualizar' : 'registrar'}: $e')),
               ],
             ),
             backgroundColor: const Color(0xFFE53935),
@@ -1605,7 +1659,7 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -1639,18 +1693,22 @@ String _evaluarRiesgoAnemia(double imc, String clasificacionIMC) {
                   child: ElevatedButton(
                     onPressed: () async {
                       // Recargar datos en el home
-                      final authController = Provider.of<AuthController>(context, listen: false);
-                      final ninoController = Provider.of<NinoController>(context, listen: false);
+                      final authController =
+                          Provider.of<AuthController>(context, listen: false);
+                      final ninoController =
+                          Provider.of<NinoController>(context, listen: false);
                       final usuarioId = authController.usuarioActual?.id;
-                      
+
                       if (usuarioId != null) {
                         await ninoController.cargarNinosPorUsuario(usuarioId);
-                        await ninoController.cargarEstadisticasUsuario(usuarioId);
+                        await ninoController
+                            .cargarEstadisticasUsuario(usuarioId);
                       }
-                      
+
                       if (context.mounted) {
                         Navigator.of(context).pop(); // Cerrar diálogo
-                        Navigator.of(context).pop(); // Cerrar pantalla de registro
+                        Navigator.of(context)
+                            .pop(); // Cerrar pantalla de registro
                       }
                     },
                     style: ElevatedButton.styleFrom(

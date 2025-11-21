@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,10 @@ import 'anemia_diagnostico_view.dart';
 import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
+import '../widgets/custom_app_bar.dart';
 import 'login_view.dart';
+import 'nutritional_plan_view.dart';
+import 'progress_charts_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -24,21 +28,45 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
-    // Cargar datos iniciales por usuario
+
+    // Cargar datos iniciales - SIN AWAIT para no bloquear
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final ninoController = Provider.of<NinoController>(context, listen: false);
-      
+      _cargarDatosIniciales();
+    });
+  }
+
+  void _cargarDatosIniciales() async {
+    try {
+      final authController =
+          Provider.of<AuthController>(context, listen: false);
+      final ninoController =
+          Provider.of<NinoController>(context, listen: false);
+
       final usuarioId = authController.usuarioActual?.id;
       
-      if (usuarioId != null) {
+      debugPrint('═══════════════════════════════════');
+      debugPrint('🏠 HOME: Verificando usuario...');
+      debugPrint('🏠 HOME: Usuario: ${authController.usuarioActual?.usuario}');
+      debugPrint('🏠 HOME: ID: $usuarioId');
+      debugPrint('🏠 HOME: Logged in: ${authController.isLoggedIn}');
+      debugPrint('═══════════════════════════════════');
+
+      if (usuarioId != null && usuarioId.isNotEmpty) {
+        debugPrint('✅ HOME: Usuario válido - cargando datos...');
+        
+        // Ejecutar sin bloquear UI
         ninoController.cargarNinosPorUsuario(usuarioId);
         ninoController.cargarEstadisticasUsuario(usuarioId);
+        
       } else {
-        Navigator.pushReplacementNamed(context, '/login');
+        debugPrint('❌ HOME: Sin usuario - redirigiendo a login');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
       }
-    });
+    } catch (e) {
+      debugPrint('❌ HOME: Error crítico: $e');
+    }
   }
 
   @override
@@ -51,7 +79,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     final authController = Provider.of<AuthController>(context, listen: false);
     final ninoController = Provider.of<NinoController>(context, listen: false);
     final usuarioId = authController.usuarioActual?.id;
-    
+
     if (usuarioId != null) {
       await ninoController.cargarNinosPorUsuario(usuarioId);
       await ninoController.cargarEstadisticasUsuario(usuarioId);
@@ -62,7 +90,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     setState(() => _isLoadingRefresh = true);
     await _cargarDatos();
     setState(() => _isLoadingRefresh = false);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -88,25 +116,25 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       'Evaluación',
       'Diagnóstico',
       'Perfil',
+      'Progreso'
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(titles[_selectedIndex]),
+      appBar: CustomAppBar(
+        title: titles[_selectedIndex],
         backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: _selectedIndex == 0
             ? [
                 IconButton(
                   onPressed: _isLoadingRefresh ? null : _refrescarDatos,
-                  icon: _isLoadingRefresh 
+                  icon: _isLoadingRefresh
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Icon(Icons.refresh),
@@ -147,36 +175,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
 
             // 1: Plan Nutricional
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.food_bank, size: 72, color: Colors.green),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Plan Nutricional',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Aquí irá la información y recomendaciones del plan nutricional.',
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Plan nutricional (en desarrollo)')),
-                        );
-                      },
-                      child: const Text('Ver Plan'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const NutritionalPlanView(),
 
             // 2: Evaluación
             Center(
@@ -185,11 +184,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.assignment_turned_in, size: 72, color: Colors.orange),
+                    const Icon(Icons.assignment_turned_in,
+                        size: 72, color: Colors.orange),
                     const SizedBox(height: 16),
                     const Text(
                       'Evaluación',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -208,6 +209,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
             ),
 
+            // 2: Gráficos de Progreso - NUEVA VISTA
+            const ProgressChartsView(),
+
             // 3: Anemia
             const AnemiaDiagnosticoView(),
 
@@ -221,24 +225,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         selectedItemColor: Colors.blue.shade700,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
+          debugPrint('🔘 HOME: Navegando a índice $index');
           if (index == 2) {
+            // Botón Registrar - va a otra vista
             Navigator.of(context).pushNamed('/registro_flow');
             return;
           }
-          setState(() => _selectedIndex = index);
+          setState(() {
+            _selectedIndex = index;
+            debugPrint('✅ HOME: Índice cambiado a $_selectedIndex');
+          });
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Plan'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Registrar'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle), label: 'Registrar'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.analytics), label: 'Progreso'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt), label: 'Diagnóstico'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
         type: BottomNavigationBarType.fixed,
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              onPressed: () => Navigator.of(context).pushNamed('/registro_flow'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/registro_flow'),
               backgroundColor: Colors.blue.shade700,
               child: const Icon(Icons.add, color: Colors.white),
             )
@@ -247,10 +261,59 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   // DISEÑO SIMPLIFICADO DEL HOME
-  Widget _buildHomeContent(AuthController authController, NinoController ninoController) {
-    if (ninoController.isLoading && ninoController.ninos.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+  Widget _buildHomeContent(
+      AuthController authController, NinoController ninoController) {
+    // Mostrar error si existe
+    if (ninoController.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar datos',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                ninoController.errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ninoController.clearError();
+                  _cargarDatos();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
+
+    // NO MOSTRAR LOADING - Mostrar contenido vacío inmediatamente
+    // El loading se muestra solo si hay error
 
     return RefreshIndicator(
       onRefresh: _refrescarDatos,
@@ -294,7 +357,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: Icon(
               Icons.person,
               color: Colors.white,
@@ -318,7 +381,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   'Control nutricional infantil',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -332,7 +395,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   // Estadísticas más compactas
   Widget _buildCompactStats(NinoController ninoController) {
     final stats = ninoController.estadisticas;
-    
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -376,7 +439,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSimpleStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSimpleStatItem(
+      String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Column(
         children: [
@@ -430,7 +494,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 8),
-            
             if (ninos.isEmpty)
               _buildEmptyState()
             else
@@ -446,14 +509,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: nino.sexo == 'Masculino' 
-            ? Colors.blue.shade100 
+        backgroundColor: nino.sexo == 'Masculino'
+            ? Colors.blue.shade100
             : Colors.pink.shade100,
         radius: 20,
         child: Icon(
           nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-          color: nino.sexo == 'Masculino' 
-              ? Colors.blue.shade700 
+          color: nino.sexo == 'Masculino'
+              ? Colors.blue.shade700
               : Colors.pink.shade700,
           size: 20,
         ),
@@ -538,10 +601,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildHelpSection('🏠 Inicio', 'Visualiza tus estadísticas y registros recientes'),
-              _buildHelpSection('➕ Registrar', 'Agrega un nuevo niño al sistema'),
-              _buildHelpSection('👤 Perfil', 'Gestiona tu información personal'),
-              _buildHelpSection('🔄 Actualizar', 'Desliza hacia abajo o toca el ícono de actualizar'),
+              _buildHelpSection('🏠 Inicio',
+                  'Visualiza tus estadísticas y registros recientes'),
+              _buildHelpSection(
+                  '➕ Registrar', 'Agrega un nuevo niño al sistema'),
+              _buildHelpSection(
+                  '👤 Perfil', 'Gestiona tu información personal'),
+              _buildHelpSection('🔄 Actualizar',
+                  'Desliza hacia abajo o toca el ícono de actualizar'),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -623,13 +690,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade100 
+                  backgroundColor: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade100
                       : Colors.pink.shade100,
                   child: Icon(
                     nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                    color: nino.sexo == 'Masculino' 
-                        ? Colors.blue.shade700 
+                    color: nino.sexo == 'Masculino'
+                        ? Colors.blue.shade700
                         : Colors.pink.shade700,
                   ),
                 ),
@@ -661,9 +728,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            
+
             const Divider(height: 24),
-            
+
             // Información básica
             Expanded(
               child: ListView(
@@ -673,12 +740,341 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   _buildDetailRow('Peso', '${nino.peso} kg'),
                   _buildDetailRow('Talla', '${nino.talla} cm'),
                   if (nino.clasificacionIMC != null)
-                    _buildDetailRow('IMC', nino.clasificacionIMC!, 
+                    _buildDetailRow('IMC', nino.clasificacionIMC!,
                         color: _getIMCTextColor(nino.clasificacionIMC!)),
+
+                  // Historial Clínico - Foto de Conjuntiva
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+
+                  // Título de la sección
+                  Row(
+                    children: [
+                      Icon(Icons.medical_information,
+                          color: Colors.blue.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Historial Clínico',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Contenedor de la foto o mensaje para tomar foto
+                  if (nino.fotoConjuntivaUrl != null &&
+                      nino.fotoConjuntivaUrl!.isNotEmpty) ...[
+                    // Contenedor de la foto
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: Colors.blue.shade200, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.camera_alt,
+                                    size: 14, color: Colors.blue.shade700),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Foto de Conjuntiva',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Foto
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                width: double.infinity,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Image.file(
+                                  File(nino.fotoConjuntivaUrl!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.image_not_supported,
+                                              size: 40,
+                                              color: Colors.grey[400]),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Imagen no disponible',
+                                            style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 11),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // Footer
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    size: 14, color: Colors.green.shade700),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Última foto de diagnóstico',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Mensaje cuando no hay foto
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.purple.shade200,
+                            width: 2,
+                            style: BorderStyle.solid),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.add_a_photo,
+                              size: 48, color: Colors.purple.shade300),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Sin foto de conjuntiva',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.purple.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Sección: Diagnóstico de Anemia
+                  const SizedBox(height: 16),
+                  if (nino.diagnosticoAnemiaRiesgo != null) ...[
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                .withValues(alpha: 0.5),
+                            width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                .withValues(alpha: 0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color:
+                                  _getRiskColor(nino.diagnosticoAnemiaRiesgo!)
+                                      .withValues(alpha: 0.1),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.health_and_safety,
+                                    size: 14,
+                                    color: _getRiskColor(
+                                        nino.diagnosticoAnemiaRiesgo!)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Diagnóstico de Anemia',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getRiskColor(
+                                        nino.diagnosticoAnemiaRiesgo!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Contenido
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Badge de riesgo
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: _getRiskColor(
+                                            nino.diagnosticoAnemiaRiesgo!),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        'Riesgo ${nino.diagnosticoAnemiaRiesgo!.toUpperCase()}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    if (nino.diagnosticoAnemiaScore != null)
+                                      Text(
+                                        'Score: ${nino.diagnosticoAnemiaScore!.toStringAsFixed(1)}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Fecha del diagnóstico
+                                if (nino.diagnosticoAnemiaFecha != null)
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today,
+                                          size: 12, color: Colors.grey[600]),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Fecha: ${DateFormat('dd/MM/yyyy').format(nino.diagnosticoAnemiaFecha!)}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Mensaje cuando no hay diagnóstico
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline,
+                              size: 20, color: Colors.grey.shade600),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Sin diagnóstico de anemia registrado',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            
+
             // Botones
             const SizedBox(height: 16),
             Row(
@@ -690,7 +1086,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     _editarNino(nino);
                   },
                   icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                  label: Text('Editar', style: TextStyle(color: Colors.blue.shade700)),
+                  label: Text('Editar',
+                      style: TextStyle(color: Colors.blue.shade700)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -749,6 +1146,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     }
   }
 
+  Color _getRiskColor(String riesgo) {
+    switch (riesgo.toLowerCase()) {
+      case 'alto':
+        return Colors.red.shade700;
+      case 'medio':
+        return Colors.orange.shade700;
+      case 'bajo':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
   void _editarNino(dynamic nino) {
     Navigator.push(
       context,
@@ -787,34 +1197,42 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   color: Colors.white,
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Información
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildProfileField('Usuario', usuarioName, Icons.account_circle),
+                      _buildProfileField(
+                          'Usuario', usuarioName, Icons.account_circle),
                       const SizedBox(height: 12),
-                      _buildProfileField('Nombres', nombre.isNotEmpty ? nombre : 'No especificado', Icons.person),
+                      _buildProfileField(
+                          'Nombres',
+                          nombre.isNotEmpty ? nombre : 'No especificado',
+                          Icons.person),
                       const SizedBox(height: 12),
-                      _buildProfileField('Apellidos', apellido.isNotEmpty ? apellido : 'No especificado', Icons.person_outline),
+                      _buildProfileField(
+                          'Apellidos',
+                          apellido.isNotEmpty ? apellido : 'No especificado',
+                          Icons.person_outline),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Botón logout
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _handleLogout,
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
+                  label: const Text('Cerrar Sesión',
+                      style: TextStyle(color: Colors.red)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.all(16),
@@ -897,10 +1315,9 @@ class _AllRegistrosView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Todos los Registros'),
+      appBar: CustomAppBar(
+        title: 'Todos los Registros',
         backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -911,13 +1328,13 @@ class _AllRegistrosView extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: nino.sexo == 'Masculino' 
-                    ? Colors.blue.shade100 
+                backgroundColor: nino.sexo == 'Masculino'
+                    ? Colors.blue.shade100
                     : Colors.pink.shade100,
                 child: Icon(
                   nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                  color: nino.sexo == 'Masculino' 
-                      ? Colors.blue.shade700 
+                  color: nino.sexo == 'Masculino'
+                      ? Colors.blue.shade700
                       : Colors.pink.shade700,
                 ),
               ),

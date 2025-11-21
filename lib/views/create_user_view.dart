@@ -40,11 +40,11 @@ class _CreateUserViewState extends State<CreateUserView> {
     final success = await authController.crearUsuario(
       usuario: _emailController.text.trim(), // Usamos el email como usuario
       contrasena: _contrasenaController.text.trim(),
-      nombre: _nombreController.text.trim().isNotEmpty 
-          ? _nombreController.text.trim() 
+      nombre: _nombreController.text.trim().isNotEmpty
+          ? _nombreController.text.trim()
           : null,
-      apellido: _apellidoController.text.trim().isNotEmpty 
-          ? _apellidoController.text.trim() 
+      apellido: _apellidoController.text.trim().isNotEmpty
+          ? _apellidoController.text.trim()
           : null,
       email: _emailController.text.trim(), // El email es obligatorio
     );
@@ -105,17 +105,23 @@ class _CreateUserViewState extends State<CreateUserView> {
                           const SizedBox(height: 16),
                           Text(
                             'Crear Nueva Cuenta',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Complete la información para crear un nuevo usuario',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Colors.grey.shade600,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -127,8 +133,8 @@ class _CreateUserViewState extends State<CreateUserView> {
                     Text(
                       'Información de Acceso',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
 
@@ -158,9 +164,12 @@ class _CreateUserViewState extends State<CreateUserView> {
                         hintText: 'Mínimo 6 caracteres',
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -180,9 +189,13 @@ class _CreateUserViewState extends State<CreateUserView> {
                         hintText: 'Repita la contraseña',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword),
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                            _obscureConfirmPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -196,8 +209,8 @@ class _CreateUserViewState extends State<CreateUserView> {
                     Text(
                       'Información Personal (Opcional)',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
 
@@ -267,7 +280,8 @@ class _CreateUserViewState extends State<CreateUserView> {
                     SizedBox(
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: authController.isLoading ? null : _handleCreateUser,
+                        onPressed:
+                            authController.isLoading ? null : _handleCreateUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
                           foregroundColor: Colors.white,
@@ -282,7 +296,8 @@ class _CreateUserViewState extends State<CreateUserView> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text(
@@ -300,8 +315,8 @@ class _CreateUserViewState extends State<CreateUserView> {
                     SizedBox(
                       height: 50,
                       child: OutlinedButton(
-                        onPressed: authController.isLoading 
-                            ? null 
+                        onPressed: authController.isLoading
+                            ? null
                             : () {
                                 authController.clearError();
                                 Navigator.of(context).pop();
