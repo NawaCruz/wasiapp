@@ -40,22 +40,28 @@ class NinoController extends ChangeNotifier {
     
     // NO MOSTRAR LOADING - cargar en background
     _clearError();
+    _ninos = [];
+    _ninosFiltrados = [];
+    notifyListeners(); // Limpiar UI primero
 
     try {
-      // Timeout agresivo de 5 segundos
+      debugPrint('⏳ Controller: Llamando al servicio...');
+      // Timeout de 10 segundos
       _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
       
       _ninosFiltrados = List.from(_ninos);
       
       debugPrint('✅ Controller: ${_ninos.length} niños cargados');
+      debugPrint('📋 Controller: Lista actualizada en memoria');
       notifyListeners();
       
     } catch (e) {
-      debugPrint('❌ Controller: Error: $e');
+      debugPrint('❌ Controller: Error capturado: $e');
+      debugPrint('❌ Controller: Tipo de error: ${e.runtimeType}');
       _ninos = [];
       _ninosFiltrados = [];
-      _setError('Sin conexión o sin datos');
+      _setError('Error al cargar datos: ${e.toString().substring(0, 50)}...');
       notifyListeners();
     }
   }

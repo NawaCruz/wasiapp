@@ -55,17 +55,22 @@ class NinoService {
     debugPrint('🔍 Service: CONSULTANDO FIREBASE');
     debugPrint('🔍 Usuario ID: $usuarioId');
     debugPrint('🔍 Colección: $_collection');
+    debugPrint('🔍 Firebase App: ${_firestore.app.name}');
+    debugPrint('🔍 Project ID: ${_firestore.app.options.projectId}');
     debugPrint('═══════════════════════════════════');
     
     try {
       debugPrint('📡 Ejecutando query a Firestore...');
+      debugPrint('⏱️ Timestamp inicio: ${DateTime.now()}');
       
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('usuarioId', isEqualTo: usuarioId)
           .get();
 
+      debugPrint('⏱️ Timestamp fin: ${DateTime.now()}');
       debugPrint('📦 Respuesta recibida: ${querySnapshot.docs.length} documentos');
+      debugPrint('📦 Metadata: fromCache=${querySnapshot.metadata.isFromCache}');
 
       if (querySnapshot.docs.isEmpty) {
         debugPrint('⚠️ NO HAY DOCUMENTOS para este usuario');

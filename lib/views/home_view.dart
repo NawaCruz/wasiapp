@@ -8,6 +8,7 @@ import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/firebase_debug_widget.dart';
 import 'login_view.dart';
 import 'nutritional_plan_view.dart';
 import 'progress_charts_view.dart';
@@ -54,9 +55,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       if (usuarioId != null && usuarioId.isNotEmpty) {
         debugPrint('✅ HOME: Usuario válido - cargando datos...');
         
-        // Ejecutar sin bloquear UI
-        ninoController.cargarNinosPorUsuario(usuarioId);
-        ninoController.cargarEstadisticasUsuario(usuarioId);
+        // Ejecutar sin bloquear UI y esperar resultado
+        await ninoController.cargarNinosPorUsuario(usuarioId);
+        debugPrint('🏠 HOME: Carga completada - ${ninoController.ninos.length} niños');
+        
+        await ninoController.cargarEstadisticasUsuario(usuarioId);
+        debugPrint('🏠 HOME: Estadísticas cargadas');
         
       } else {
         debugPrint('❌ HOME: Sin usuario - redirigiendo a login');
@@ -145,9 +149,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   onSelected: (value) {
                     if (value == 'logout') {
                       _handleLogout();
+                    } else if (value == 'debug') {
+                      _showFirebaseDebug();
                     }
                   },
                   itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'debug',
+                      child: Row(
+                        children: [
+                          Icon(Icons.bug_report, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text('Debug Firebase'),
+                        ],
+                      ),
+                    ),
                     const PopupMenuItem(
                       value: 'logout',
                       child: Row(
@@ -468,6 +484,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   // Lista de registros simplificada
   Widget _buildSimpleRegistrosList(NinoController ninoController) {
     final ninos = ninoController.ninos.take(5).toList();
+    
+    // DEBUG: Mostrar información de estado
+    debugPrint('🎨 UI: Renderizando lista - ${ninos.length} niños');
+    debugPrint('🎨 UI: Lista completa - ${ninoController.ninos.length} niños');
 
     return Card(
       elevation: 2,
@@ -479,9 +499,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Registros Recientes',
-                  style: TextStyle(
+                Text(
+                  'Registros Recientes (${ninoController.ninos.length})',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -569,6 +589,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '💡 Si ya registraste niños, verifica tu conexión',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.orange.shade700,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ],
@@ -1273,6 +1303,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
         ),
       ],
+    );
+  }
+
+  void _showFirebaseDebug() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FirebaseDebugWidget(),
+      ),
     );
   }
 
