@@ -18,22 +18,6 @@ class NinoController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Map<String, dynamic> get estadisticas => _estadisticas;
 
-  // Cargar todos los niños
-  Future<void> cargarNinos() async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      _ninos = await NinoService.obtenerNinosActivos();
-      _ninosFiltrados = List.from(_ninos);
-      notifyListeners();
-    } catch (e) {
-      _setError('Error al cargar niños: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   // Cargar niños por usuario
   Future<void> cargarNinosPorUsuario(String usuarioId) async {
     debugPrint('🔄 Controller: Iniciando carga para usuario: $usuarioId');
@@ -45,10 +29,16 @@ class NinoController extends ChangeNotifier {
     notifyListeners(); // Limpiar UI primero
 
     try {
-      debugPrint('⏳ Controller: Llamando al servicio...');
-      // Timeout de 10 segundos
+      debugPrint('⏳ Controller: Llamando a NinoService...');
+      // Usar NinoService que ya tiene cache-first strategy
       _ninos = await NinoService.obtenerNinosPorUsuario(usuarioId)
-          .timeout(const Duration(seconds: 10));
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              debugPrint('⏱️ Controller: Timeout alcanzado');
+              return [];
+            },
+          );
       
       _ninosFiltrados = List.from(_ninos);
       
@@ -164,11 +154,9 @@ class NinoController extends ChangeNotifier {
 
       await NinoService.actualizarNino(ninoActualizado);
 
-      // Recargar según el contexto
-      if (usuarioId != null) {
+      // Recargar datos del usuario
+      if (usuarioId != null && usuarioId.isNotEmpty) {
         await cargarNinosPorUsuario(usuarioId);
-      } else {
-        await cargarNinos();
       }
 
       return true;
@@ -188,11 +176,9 @@ class NinoController extends ChangeNotifier {
 
       await NinoService.eliminarNino(id);
 
-      // Recargar según el contexto
-      if (usuarioId != null) {
+      // Recargar datos del usuario
+      if (usuarioId != null && usuarioId.isNotEmpty) {
         await cargarNinosPorUsuario(usuarioId);
-      } else {
-        await cargarNinos();
       }
 
       return true;
@@ -204,85 +190,34 @@ class NinoController extends ChangeNotifier {
     }
   }
 
-  // Buscar niños
-  Future<void> buscarNinos(String termino) async {
-    if (termino.isEmpty) {
-      _ninosFiltrados = List.from(_ninos);
-      notifyListeners();
-      return;
-    }
-
-    try {
-      _setLoading(true);
-      _clearError();
-
-      // Buscar por DNI si el término es numérico
-      if (RegExp(r'^\d+$').hasMatch(termino)) {
-        _ninosFiltrados = await NinoService.buscarPorDNI(termino);
-      } else {
-        // Buscar por nombre
-        _ninosFiltrados = await NinoService.buscarPorNombre(termino);
-      }
-
-      notifyListeners();
-    } catch (e) {
-      _setError('Error en la búsqueda: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Filtrar por sexo
-  void filtrarPorSexo(String? sexo) {
-    if (sexo == null || sexo.isEmpty || sexo == 'Todos') {
-      _ninosFiltrados = List.from(_ninos);
-    } else {
-      _ninosFiltrados = _ninos.where((nino) => nino.sexo == sexo).toList();
-    }
-    notifyListeners();
-  }
-
-  // Filtrar por clasificación IMC
-  void filtrarPorIMC(String? clasificacion) {
-    if (clasificacion == null ||
-        clasificacion.isEmpty ||
-        clasificacion == 'Todas') {
-      _ninosFiltrados = List.from(_ninos);
-    } else {
-      _ninosFiltrados = _ninos
-          .where((nino) => nino.clasificacionIMC == clasificacion)
-          .toList();
-    }
-    notifyListeners();
-  }
-
-  // Cargar estadísticas
-  Future<void> cargarEstadisticas() async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      _estadisticas = await NinoService.obtenerEstadisticas();
-      notifyListeners();
-    } catch (e) {
-      _setError('Error al cargar estadísticas: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   // Cargar estadísticas por usuario
   Future<void> cargarEstadisticasUsuario(String usuarioId) async {
     try {
-      debugPrint('📊 Controller: Cargando estadísticas...');
+      debugPrint('📊 Controller: Calculando estadísticas desde memoria...');
       
-      _estadisticas = await NinoService.obtenerEstadisticasUsuario(usuarioId)
-          .timeout(const Duration(seconds: 3));
+      // Calcular estadísticas desde los datos ya cargados (SIN consulta a Firebase)
+      final totalNinos = _ninos.length;
+      final masculinos = _ninos.where((n) => n.sexo == 'Masculino').length;
+      final femeninos = _ninos.where((n) => n.sexo == 'Femenino').length;
       
-      debugPrint('✅ Controller: Estadísticas OK');
+      final hoy = DateTime.now();
+      final registrosHoy = _ninos.where((n) {
+        return n.fechaRegistro.year == hoy.year &&
+            n.fechaRegistro.month == hoy.month &&
+            n.fechaRegistro.day == hoy.day;
+      }).length;
+      
+      _estadisticas = {
+        'totalNinos': totalNinos,
+        'masculinos': masculinos,
+        'femeninos': femeninos,
+        'registrosHoy': registrosHoy,
+      };
+      
+      debugPrint('✅ Controller: Estadísticas calculadas - Total: $totalNinos, M: $masculinos, F: $femeninos');
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Controller: Error estadísticas');
+      debugPrint('❌ Controller: Error estadísticas: $e');
       _estadisticas = {};
       notifyListeners();
     }

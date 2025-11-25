@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,6 @@ import 'registro_flow.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/nino_controller.dart';
 import '../widgets/custom_app_bar.dart';
-import '../widgets/firebase_debug_widget.dart';
 import 'login_view.dart';
 import 'nutritional_plan_view.dart';
 import 'progress_charts_view.dart';
@@ -29,49 +29,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    // Cargar datos iniciales - SIN AWAIT para no bloquear
+    
+    // Cargar datos automáticamente al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _cargarDatosIniciales();
+      _cargarDatos();
     });
   }
 
-  void _cargarDatosIniciales() async {
-    try {
-      final authController =
-          Provider.of<AuthController>(context, listen: false);
-      final ninoController =
-          Provider.of<NinoController>(context, listen: false);
 
-      final usuarioId = authController.usuarioActual?.id;
-      
-      debugPrint('═══════════════════════════════════');
-      debugPrint('🏠 HOME: Verificando usuario...');
-      debugPrint('🏠 HOME: Usuario: ${authController.usuarioActual?.usuario}');
-      debugPrint('🏠 HOME: ID: $usuarioId');
-      debugPrint('🏠 HOME: Logged in: ${authController.isLoggedIn}');
-      debugPrint('═══════════════════════════════════');
-
-      if (usuarioId != null && usuarioId.isNotEmpty) {
-        debugPrint('✅ HOME: Usuario válido - cargando datos...');
-        
-        // Ejecutar sin bloquear UI y esperar resultado
-        await ninoController.cargarNinosPorUsuario(usuarioId);
-        debugPrint('🏠 HOME: Carga completada - ${ninoController.ninos.length} niños');
-        
-        await ninoController.cargarEstadisticasUsuario(usuarioId);
-        debugPrint('🏠 HOME: Estadísticas cargadas');
-        
-      } else {
-        debugPrint('❌ HOME: Sin usuario - redirigiendo a login');
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ HOME: Error crítico: $e');
-    }
-  }
 
   @override
   void dispose() {
@@ -84,31 +49,66 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     final ninoController = Provider.of<NinoController>(context, listen: false);
     final usuarioId = authController.usuarioActual?.id;
 
-    if (usuarioId != null) {
-      await ninoController.cargarNinosPorUsuario(usuarioId);
-      await ninoController.cargarEstadisticasUsuario(usuarioId);
+    debugPrint('🔄 Carga manual iniciada...');
+    
+    if (usuarioId != null && usuarioId.isNotEmpty) {
+      try {
+        await ninoController.cargarNinosPorUsuario(usuarioId);
+        await ninoController.cargarEstadisticasUsuario(usuarioId);
+        debugPrint('✅ Carga completada: ${ninoController.ninos.length} niños');
+      } catch (e) {
+        debugPrint('❌ Error en carga: $e');
+      }
+    } else {
+      debugPrint('❌ Sin usuario ID');
     }
   }
 
   Future<void> _refrescarDatos() async {
     setState(() => _isLoadingRefresh = true);
-    await _cargarDatos();
-    setState(() => _isLoadingRefresh = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Datos actualizados correctamente'),
-            ],
+    
+    debugPrint('🔄 REFRESH: Iniciando...');
+    
+    try {
+      await _cargarDatos();
+      
+      if (mounted) {
+        setState(() => _isLoadingRefresh = false);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Datos actualizados correctamente'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ REFRESH: Error: $e');
+      
+      if (mounted) {
+        setState(() => _isLoadingRefresh = false);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Error: ${e.toString()}')),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -149,21 +149,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   onSelected: (value) {
                     if (value == 'logout') {
                       _handleLogout();
-                    } else if (value == 'debug') {
-                      _showFirebaseDebug();
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'debug',
-                      child: Row(
-                        children: [
-                          Icon(Icons.bug_report, color: Colors.orange),
-                          SizedBox(width: 8),
-                          Text('Debug Firebase'),
-                        ],
-                      ),
-                    ),
                     const PopupMenuItem(
                       value: 'logout',
                       child: Row(
@@ -186,6 +174,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             // 0: Inicio - Simplificado
             Consumer2<AuthController, NinoController>(
               builder: (context, authController, ninoController, child) {
+                // NO CARGAR AUTOMÁTICAMENTE - solo manual
                 return _buildHomeContent(authController, ninoController);
               },
             ),
@@ -570,35 +559,39 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       child: Column(
         children: [
           Icon(
-            Icons.child_care,
-            size: 48,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No hay registros aún',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Toca el botón + para comenzar',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            Icons.refresh,
+            size: 64,
+            color: Colors.blue.shade300,
           ),
           const SizedBox(height: 16),
           Text(
-            '💡 Si ya registraste niños, verifica tu conexión',
+            'Toca el botón de actualizar',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Arriba a la derecha para cargar tus datos',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.orange.shade700,
-              fontStyle: FontStyle.italic,
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _refrescarDatos,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Cargar Datos Ahora'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
             ),
           ),
         ],
@@ -1303,15 +1296,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
         ),
       ],
-    );
-  }
-
-  void _showFirebaseDebug() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FirebaseDebugWidget(),
-      ),
     );
   }
 

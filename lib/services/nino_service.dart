@@ -6,6 +6,17 @@ import '../models/nino_model.dart';
 class NinoService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _collection = 'ninos';
+  
+  // Inicializar configuración de Firestore (llamar UNA vez al inicio)
+  static Future<void> initialize() async {
+    try {
+      // Habilitar persistencia offline para evitar bloqueos
+      await _firestore.enableNetwork();
+      debugPrint('✅ Firestore: Red habilitada');
+    } catch (e) {
+      debugPrint('⚠️ Firestore: Error al habilitar red: $e');
+    }
+  }
 
   // Crear nuevo registro de niño
   static Future<String> crearNino(NinoModel nino) async {
@@ -31,46 +42,88 @@ class NinoService {
     }
   }
 
-  // Obtener todos los niños activos
-  static Future<List<NinoModel>> obtenerNinosActivos() async {
-    try {
-      final querySnapshot = await _firestore
-          .collection(_collection)
-          .where('activo', isEqualTo: true)
-          .orderBy('fechaRegistro', descending: true)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => NinoModel.fromMap(doc.data(), doc.id))
-          .toList();
-    } catch (e) {
-      throw Exception('Error al obtener niños: $e');
-    }
+  // Stream de niños por usuario (no bloquea el hilo principal)
+  static Stream<List<NinoModel>> streamNinosPorUsuario(String usuarioId) {
+    debugPrint('🌊 Stream iniciado para usuario: $usuarioId');
+    
+    return _firestore
+        .collection(_collection)
+        .where('usuarioId', isEqualTo: usuarioId)
+        .where('activo', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          debugPrint('📦 Stream recibió ${snapshot.docs.length} docs');
+          
+          final ninos = snapshot.docs
+              .map((doc) {
+                try {
+                  return NinoModel.fromMap(doc.data(), doc.id);
+                } catch (e) {
+                  debugPrint('❌ Error parseando doc ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .whereType<NinoModel>()
+              .toList();
+          
+          ninos.sort((a, b) => b.fechaRegistro.compareTo(a.fechaRegistro));
+          debugPrint('✅ Stream procesó ${ninos.length} niños válidos');
+          
+          return ninos;
+        });
   }
 
-  // Obtener niños activos por usuario
+  // Obtener niños activos por usuario (ahora usa cache primero)
   static Future<List<NinoModel>> obtenerNinosPorUsuario(
       String usuarioId) async {
-    debugPrint('═══════════════════════════════════');
-    debugPrint('🔍 Service: CONSULTANDO FIREBASE');
-    debugPrint('🔍 Usuario ID: $usuarioId');
-    debugPrint('🔍 Colección: $_collection');
-    debugPrint('🔍 Firebase App: ${_firestore.app.name}');
-    debugPrint('🔍 Project ID: ${_firestore.app.options.projectId}');
-    debugPrint('═══════════════════════════════════');
+    debugPrint('🔍 Consultando niños para usuario: $usuarioId');
     
     try {
-      debugPrint('📡 Ejecutando query a Firestore...');
-      debugPrint('⏱️ Timestamp inicio: ${DateTime.now()}');
+      // Intentar primero desde CACHE (instantáneo)
+      QuerySnapshot<Map<String, dynamic>>? cacheSnapshot;
+      try {
+        cacheSnapshot = await _firestore
+            .collection(_collection)
+            .where('usuarioId', isEqualTo: usuarioId)
+            .get(const GetOptions(source: Source.cache));
+      } catch (e) {
+        debugPrint('⚠️ Cache no disponible: $e');
+      }
       
+      if (cacheSnapshot != null && cacheSnapshot.docs.isNotEmpty) {
+        debugPrint('💾 Usando ${cacheSnapshot.docs.length} docs desde CACHE');
+        final ninos = cacheSnapshot.docs
+            .map((doc) {
+              try {
+                final data = doc.data();
+                if (data['activo'] == true) {
+                  return NinoModel.fromMap(data, doc.id);
+                }
+                return null;
+              } catch (e) {
+                debugPrint('❌ Error parseando: $e');
+                return null;
+              }
+            })
+            .whereType<NinoModel>()
+            .toList();
+        
+        if (ninos.isNotEmpty) {
+          ninos.sort((a, b) => b.fechaRegistro.compareTo(a.fechaRegistro));
+          return ninos;
+        }
+      }
+      
+      // Si no hay cache, consultar servidor
+      debugPrint('🌐 Consultando servidor...');
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('usuarioId', isEqualTo: usuarioId)
           .get();
 
-      debugPrint('⏱️ Timestamp fin: ${DateTime.now()}');
-      debugPrint('📦 Respuesta recibida: ${querySnapshot.docs.length} documentos');
-      debugPrint('📦 Metadata: fromCache=${querySnapshot.metadata.isFromCache}');
+      debugPrint('⏱️ Fin: ${DateTime.now().toIso8601String()}');
+      debugPrint('📦 Respuesta: ${querySnapshot.docs.length} docs');
+      debugPrint('📦 Cache: ${querySnapshot.metadata.isFromCache}');
 
       if (querySnapshot.docs.isEmpty) {
         debugPrint('⚠️ NO HAY DOCUMENTOS para este usuario');

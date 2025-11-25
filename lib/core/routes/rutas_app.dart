@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart'; // aquí vive `Rutas`
 import '../../views/home_view.dart';
 import '../../views/registro_flow.dart'; // <- contiene class RegistroNinoFlow
+
+// Constantes de rutas
+class Rutas {
+  static const String inicio = '/';
+  static const String registrarNino = '/registrar-nino';
+  static const String registroFlow = '/registro_flow';
+}
 
 class RutasApp {
   /// Mapa de rutas estáticas
@@ -29,13 +35,13 @@ class RutasApp {
   /// Ruta con transición deslizante
   static PageRouteBuilder<void> _crearRuta(Widget pagina) {
     return PageRouteBuilder<void>(
-      pageBuilder: (_, __, ___) => pagina,
-      transitionsBuilder: (_, anim, __, child) {
+      pageBuilder: (context, animation, secondaryAnimation) => pagina,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1, 0);
         const end = Offset.zero;
         final tween =
             Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.ease));
-        return SlideTransition(position: anim.drive(tween), child: child);
+        return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../utils/validators.dart';
-import '../core/constants/app_constants.dart';
+import '../core/routes/rutas_app.dart';
 
 class CreateUserView extends StatefulWidget {
   const CreateUserView({super.key});

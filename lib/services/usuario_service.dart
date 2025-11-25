@@ -47,34 +47,6 @@ class UsuarioService {
     }
   }
 
-  // Eliminar usuario (soft delete)
-  static Future<void> eliminarUsuario(String id) async {
-    try {
-      await _firestore
-          .collection(_collection)
-          .doc(id)
-          .update({'activo': false});
-    } catch (e) {
-      throw Exception('Error al eliminar usuario: $e');
-    }
-  }
-
-  // Obtener todos los usuarios activos
-  static Future<List<UsuarioModel>> obtenerUsuariosActivos() async {
-    try {
-      final querySnapshot = await _firestore
-          .collection(_collection)
-          .where('activo', isEqualTo: true)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => UsuarioModel.fromMap(doc.data(), doc.id))
-          .toList();
-    } catch (e) {
-      throw Exception('Error al obtener usuarios: $e');
-    }
-  }
-
   // Verificar credenciales
   static Future<bool> verificarCredenciales(
       String usuario, String contrasena) async {

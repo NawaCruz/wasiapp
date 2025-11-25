@@ -53,145 +53,63 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
   Widget _buildChildSelector(List<NinoModel> ninos) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade700,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.restaurant_menu,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Plan Personalizado',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2E7D32),
-                      ),
-                    ),
-                    Text(
-                      'Selecciona el niño para ver su plan',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF558B2F),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const Text(
+            'Selecciona un paciente',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2E7D32),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.green.shade200,
-                width: 2,
+                color: Colors.grey.shade300,
+                width: 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
             child: DropdownButtonFormField<NinoModel>(
               initialValue: _selectedChild,
-              decoration: InputDecoration(
-                hintText: '👶 Selecciona un niño',
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade400,
-                  fontSize: 15,
-                ),
-                prefixIcon: Icon(
-                  Icons.child_care,
-                  color: Colors.green.shade600,
-                  size: 24,
-                ),
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.person, color: Colors.green),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
               ),
+              hint: Text(
+                'Selecciona un niño',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              isExpanded: true,
               dropdownColor: Colors.white,
               items: ninos.map((nino) {
                 return DropdownMenuItem<NinoModel>(
                   value: nino,
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: nino.sexo == 'Masculino'
-                              ? Colors.blue.shade50
-                              : Colors.pink.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                          color: nino.sexo == 'Masculino'
-                              ? Colors.blue.shade700
-                              : Colors.pink.shade700,
-                          size: 20,
-                        ),
+                      Icon(
+                        nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                        color: nino.sexo == 'Masculino'
+                            ? Colors.blue
+                            : Colors.pink,
+                        size: 20,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              nino.nombreCompleto,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              '${nino.edad} años',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '${nino.nombreCompleto} (${nino.edad} años)',
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -303,12 +221,16 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
                     color: Colors.green.shade700,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Basado en el diagnóstico de anemia',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.green.shade700,
-                      fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Text(
+                      'Basado en el diagnóstico de anemia',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ),
                 ],
@@ -338,94 +260,94 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
             // Botón de descarga PDF
             Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 24),
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: _isGeneratingPDF
-                  ? LinearGradient(
-                      colors: [
-                        Colors.grey.shade400,
-                        Colors.grey.shade500,
-                      ],
-                    )
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.green.shade600,
-                        Colors.green.shade700,
-                        Colors.green.shade800,
-                      ],
-                    ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: _isGeneratingPDF
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: Colors.green.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 6),
-                        spreadRadius: 1,
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 24),
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: _isGeneratingPDF
+                    ? LinearGradient(
+                        colors: [
+                          Colors.grey.shade400,
+                          Colors.grey.shade500,
+                        ],
+                      )
+                    : LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.green.shade600,
+                          Colors.green.shade700,
+                          Colors.green.shade800,
+                        ],
                       ),
-                    ],
-            ),
-            child: ElevatedButton.icon(
-              onPressed:
-                  _isGeneratingPDF ? null : () => _downloadPlanAsPDF(nino),
-              icon: _isGeneratingPDF
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: _isGeneratingPDF
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.green.withValues(alpha: 0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 6),
+                          spreadRadius: 1,
+                        ),
+                      ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed:
+                    _isGeneratingPDF ? null : () => _downloadPlanAsPDF(nino),
+                icon: _isGeneratingPDF
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        size: 26,
                       ),
-                    )
-                  : const Icon(
-                      Icons.picture_as_pdf_rounded,
-                      size: 26,
-                    ),
-              label: Text(
-                _isGeneratingPDF
-                    ? 'Generando PDF...'
-                    : '📥 Descargar Plan en PDF',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                label: Text(
+                  _isGeneratingPDF
+                      ? 'Generando PDF...'
+                      : '📥 Descargar Plan en PDF',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 24,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                foregroundColor: Colors.white,
-                shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
             ),
-          ),
 
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-          // Plan nutricional según riesgo
-          _buildPlanByRisk(riesgoAnemia, nino),
-          const SizedBox(height: 24),
+            // Plan nutricional según riesgo
+            _buildPlanByRisk(riesgoAnemia, nino),
+            const SizedBox(height: 24),
 
-          // Recomendaciones generales
-          _buildGeneralRecommendations(),
-          const SizedBox(height: 24),
+            // Recomendaciones generales
+            _buildGeneralRecommendations(),
+            const SizedBox(height: 24),
 
-          // Alimentos ricos en hierro
-          _buildIronRichFoods(),
-        ],
-      ),
-    );
+            // Alimentos ricos en hierro
+            _buildIronRichFoods(),
+          ],
+        ),
+      );
     } catch (e, stackTrace) {
       debugPrint('❌ ERROR en _buildNutritionalPlan: $e');
       debugPrint('❌ Stack trace: $stackTrace');
@@ -470,11 +392,9 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
         _isGeneratingPDF = true;
       });
 
-      // Obtener datos del plan según el riesgo
       final planData =
           _getPlanDataForPDF(nino.evaluacionAnemia ?? 'Riesgo bajo de anemia');
 
-      // Generar PDF
       final pdfFile = await PdfGeneratorService.generateNutritionalPlanPDF(
         childName: nino.nombreCompleto,
         age: nino.edad.toString(),
@@ -487,7 +407,6 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
         supplements: planData['supplements']!,
       );
 
-      // Abrir el PDF
       await OpenFile.open(pdfFile.path);
 
       if (mounted) {
@@ -518,7 +437,6 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
     }
   }
 
-  // Método para obtener datos del plan
   Map<String, List<String>> _getPlanDataForPDF(String riesgoAnemia) {
     if (riesgoAnemia.contains('Alta Probabilidad')) {
       return {
@@ -607,184 +525,90 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            riskColor.withValues(alpha: 0.15),
-            riskColor.withValues(alpha: 0.05),
-            Colors.white,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: riskColor.withValues(alpha: 0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: riskColor.withValues(alpha: 0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-            spreadRadius: 1,
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Decoración de fondo
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: riskColor.withValues(alpha: 0.05),
+          Row(
+            children: [
+              Icon(
+                nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
+                size: 32,
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            nino.sexo == 'Masculino'
-                                ? Colors.blue.shade400
-                                : Colors.pink.shade400,
-                            nino.sexo == 'Masculino'
-                                ? Colors.blue.shade600
-                                : Colors.pink.shade600,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (nino.sexo == 'Masculino'
-                                    ? Colors.blue
-                                    : Colors.pink)
-                                .withValues(alpha: 0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-                        color: Colors.white,
-                        size: 28,
+                    Text(
+                      nino.nombreCompleto,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            nino.nombreCompleto,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B5E20),
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.cake_outlined,
-                                size: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${nino.edad} años',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade700,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Icon(
-                                Icons.monitor_weight_outlined,
-                                size: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  nino.clasificacionIMC ?? "Sin clasificación",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    Text(
+                      '${nino.edad} años • ${nino.peso}kg • ${nino.talla}m',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        riskColor.withValues(alpha: 0.25),
-                        riskColor.withValues(alpha: 0.15),
-                      ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: riskColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: riskColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(riskIcon, color: riskColor, size: 18),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    riesgoAnemia,
+                    style: TextStyle(
+                      color: riskColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: riskColor.withValues(alpha: 0.4),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        riskIcon,
-                        color: riskColor,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Flexible(
-                        child: Text(
-                          riesgoAnemia,
-                          style: TextStyle(
-                            color: riskColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Basado en el diagnóstico de anemia',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1579,9 +1403,9 @@ class _NutritionalPlanViewState extends State<NutritionalPlanView> {
                     size: 22,
                   ),
                   const SizedBox(width: 10),
-                  Text(
+                  const Text(
                     'Ve a "Inicio" para registrar',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,

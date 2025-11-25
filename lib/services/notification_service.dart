@@ -23,6 +23,8 @@ class NotificationService {
   Future<void> initialize() async {
     // Inicializar timezone
     tz_data.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('America/Lima')); // Configurar zona horaria de Perú
+    
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -39,6 +41,12 @@ class NotificationService {
     );
 
     await _notifications.initialize(settings);
+    
+    // Solicitar permisos para Android 13+
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
   }
 
   // Programar recordatorio de plan alimenticio
@@ -61,13 +69,15 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    for (final day in days) {
+    for (int i = 0; i < days.length; i++) {
+      final day = days[i];
       await _notifications.zonedSchedule(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000 + day,
+        1000 + i, // ID único basado en índice
         '🍎 Plan Alimenticio - $childName',
         'Es hora de seguir el plan nutricional. ¡Mantén una alimentación saludable!',
         _nextInstanceOfTime(time, day),
         details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
@@ -128,13 +138,18 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    for (final day in days) {
+    for (int i = 0; i < days.length; i++) {
+      final day = days[i];
+      // Generar ID único basado en hora y día
+      final notificationId = (time.hour * 100 + time.minute) * 10 + i;
+      
       await _notifications.zonedSchedule(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000 + day,
+        notificationId,
         title,
         body,
         _nextInstanceOfTime(time, day),
         details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,

@@ -10,8 +10,6 @@ import 'controllers/nino_controller.dart';
 import 'views/splash_view.dart';
 
 // Configuración
-import 'firebase_options.dart';
-import 'core/constants/app_constants.dart';
 import 'core/routes/rutas_app.dart';
 
 // ML Provider
@@ -23,12 +21,19 @@ Future<void> main() async {
   debugPrint('🚀 Iniciando aplicación...');
   
   try {
+    // Configuración manual para Android
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+      options: const FirebaseOptions(
+        apiKey: 'AIzaSyDZLhoqC4yiDs5BNzi5rsTk5qck65Q3T7s',
+        appId: '1:66148375593:android:8fa0c5daed85bd06811038',
+        messagingSenderId: '66148375593',
+        projectId: 'wasiapp-66023',
+        storageBucket: 'wasiapp-66023.firebasestorage.app',
+      ),
     );
-    debugPrint('✅ Firebase inicializado');
+    debugPrint('✅ Firebase inicializado correctamente');
   } catch (e) {
-    debugPrint('❌ Error Firebase: $e');
+    debugPrint('❌ Error al inicializar Firebase: $e');
   }
 
   debugPrint('📱 Lanzando app...');
@@ -38,7 +43,8 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => NinoController()),
-        ChangeNotifierProvider(create: (_) => MLProvider()),
+        // MLProvider se carga LAZY - solo cuando se usa diagnóstico
+        ChangeNotifierProvider(create: (_) => MLProvider(), lazy: true),
       ],
       child: const AplicacionWasi(),
     ),
@@ -51,7 +57,7 @@ class AplicacionWasi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: ConstantesApp.nombreApp,
+      title: 'WasiApp',
       debugShowCheckedModeBanner: false,
 
       theme: ThemeData(

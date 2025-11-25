@@ -52,76 +52,176 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
 
   Widget _buildControls(List<NinoModel> ninos) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.shade50,
+            Colors.white,
+          ],
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.purple.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         children: [
           // Selector de niño
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.purple.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.purple.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.child_care, color: Colors.purple.shade700, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Niño:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButton<NinoModel>(
+                    value: _selectedChild,
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    hint: Text(
+                      'Selecciona un niño',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    items: ninos.map((nino) {
+                      return DropdownMenuItem<NinoModel>(
+                        value: nino,
+                        child: Row(
+                          children: [
+                            Icon(
+                              nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                              size: 18,
+                              color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(nino.nombreCompleto),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (nino) {
+                      setState(() {
+                        _selectedChild = nino;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Selector de tipo de gráfico con chips
           Row(
             children: [
-              const Icon(Icons.child_care, color: Colors.purple),
-              const SizedBox(width: 8),
-              const Text(
-                'Niño:',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.analytics, color: Colors.purple.shade700, size: 18),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButton<NinoModel>(
-                  value: _selectedChild,
-                  isExpanded: true,
-                  hint: const Text('Selecciona un niño'),
-                  items: ninos.map((nino) {
-                    return DropdownMenuItem<NinoModel>(
-                      value: nino,
-                      child: Text(nino.nombreCompleto),
-                    );
-                  }).toList(),
-                  onChanged: (nino) {
-                    setState(() {
-                      _selectedChild = nino;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Selector de tipo de gráfico
-          Row(
-            children: [
-              const Icon(Icons.analytics, color: Colors.purple, size: 18),
-              const SizedBox(width: 8),
               const Text(
                 'Gráfico:',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: DropdownButton<String>(
-                  value: _selectedChart,
-                  isExpanded: true,
-                  items: _chartTypes.map((type) {
-                    return DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (type) {
-                    setState(() {
-                      _selectedChart = type!;
-                    });
-                  },
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _chartTypes.map((type) {
+                      final isSelected = _selectedChart == type;
+                      IconData icon;
+                      Color color;
+                      
+                      switch (type) {
+                        case 'Peso':
+                          icon = Icons.monitor_weight;
+                          color = Colors.blue;
+                          break;
+                        case 'Talla':
+                          icon = Icons.height;
+                          color = Colors.green;
+                          break;
+                        case 'Riesgo':
+                          icon = Icons.health_and_safety;
+                          color = Colors.orange;
+                          break;
+                        default:
+                          icon = Icons.analytics;
+                          color = Colors.purple;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          selected: isSelected,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                icon,
+                                size: 16,
+                                color: isSelected ? Colors.white : color,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(type),
+                            ],
+                          ),
+                          backgroundColor: Colors.white,
+                          selectedColor: color,
+                          checkmarkColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey.shade700,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          side: BorderSide(
+                            color: isSelected ? color : Colors.grey.shade300,
+                          ),
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedChart = type;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ],
@@ -160,54 +260,127 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   Widget _buildChildHeader(NinoModel nino) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade50, Colors.purple.shade100],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.purple.shade50, Colors.white],
         ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.purple.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundColor: nino.sexo == 'Masculino'
-                ? Colors.blue.shade100
-                : Colors.pink.shade100,
-            child: Icon(
-              nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
-              color: nino.sexo == 'Masculino' ? Colors.blue : Colors.pink,
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: nino.sexo == 'Masculino'
+                    ? [Colors.blue.shade100, Colors.blue.shade200]
+                    : [Colors.pink.shade100, Colors.pink.shade200],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (nino.sexo == 'Masculino' ? Colors.blue : Colors.pink)
+                      .withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: nino.sexo == 'Masculino'
+                  ? Colors.blue.shade50
+                  : Colors.pink.shade50,
+              child: Icon(
+                nino.sexo == 'Masculino' ? Icons.boy : Icons.girl,
+                color: nino.sexo == 'Masculino' ? Colors.blue.shade700 : Colors.pink.shade700,
+                size: 32,
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   nino.nombreCompleto,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
-                ),
-                Text(
-                  '${nino.edad} años • ${nino.clasificacionIMC ?? "Sin clasificación"}',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple.shade800,
                   ),
                 ),
-                if (nino.evaluacionAnemia != null)
-                  Text(
-                    'Riesgo de anemia: ${nino.evaluacionAnemia}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getRiskColor(nino.evaluacionAnemia!),
-                      fontWeight: FontWeight.w600,
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.cake, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${nino.edad} años',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(Icons.monitor_weight, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        nino.clasificacionIMC ?? "Sin clasificación",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (nino.evaluacionAnemia != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getRiskColor(nino.evaluacionAnemia!).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _getRiskColor(nino.evaluacionAnemia!).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.health_and_safety,
+                          size: 14,
+                          color: _getRiskColor(nino.evaluacionAnemia!),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          nino.evaluacionAnemia!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _getRiskColor(nino.evaluacionAnemia!),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                ],
               ],
             ),
           ),
@@ -230,28 +403,60 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   }
 
   Widget _buildWeightChart(List<ProgressData> data) {
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade50, Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.blue.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.monitor_weight, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.monitor_weight, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Text(
                   '📊 Evolución de Peso (kg)',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               height: 200,
               child: _buildLineChart(
@@ -268,28 +473,60 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   }
 
   Widget _buildHeightChart(List<ProgressData> data) {
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.green.shade50, Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.green.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.height, color: Colors.green),
-                SizedBox(width: 8),
-                Text(
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade400, Colors.green.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.height, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Text(
                   '📈 Evolución de Talla (cm)',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               height: 200,
               child: _buildLineChart(
@@ -306,33 +543,65 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   }
 
   Widget _buildRiskChart(List<ProgressData> data) {
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.orange.shade50, Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.orange.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.health_and_safety, color: Colors.orange),
-                SizedBox(width: 8),
-                Text(
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.health_and_safety, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Text(
                   '🩺 Evolución del Riesgo de Anemia',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.orange,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               height: 200,
               child: _buildBarChart(data),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _buildRiskLegend(),
           ],
         ),
@@ -429,50 +698,125 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   }
 
   Widget _buildDataTable(List<ProgressData> data) {
-    return Card(
-      elevation: 2,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '📋 Datos de Progreso',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.table_chart, color: Colors.purple.shade700, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  '📋 Datos de Progreso',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Fecha')),
-                  DataColumn(label: Text('Peso (kg)')),
-                  DataColumn(label: Text('Talla (cm)')),
-                  DataColumn(label: Text('Riesgo')),
+                headingRowColor: WidgetStateProperty.all(Colors.purple.shade50),
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      'Fecha',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple.shade800,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Peso (kg)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple.shade800,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Talla (cm)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple.shade800,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Riesgo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple.shade800,
+                      ),
+                    ),
+                  ),
                 ],
                 rows: data.map((item) {
                   return DataRow(cells: [
-                    DataCell(Text(item.date)),
-                    DataCell(Text(item.weight.toStringAsFixed(1))),
-                    DataCell(Text(item.height.toStringAsFixed(1))),
+                    DataCell(Text(
+                      item.date,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    )),
+                    DataCell(Text(
+                      item.weight.toStringAsFixed(1),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    )),
+                    DataCell(Text(
+                      item.height.toStringAsFixed(1),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    )),
                     DataCell(
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getRiskColorFromLevel(item.riskLevel)
-                              .withValues(alpha: 0.2),
+                          gradient: LinearGradient(
+                            colors: [
+                              _getRiskColorFromLevel(item.riskLevel).withValues(alpha: 0.2),
+                              _getRiskColorFromLevel(item.riskLevel).withValues(alpha: 0.1),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _getRiskColorFromLevel(item.riskLevel).withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Text(
                           _getRiskDescription(item.riskLevel),
                           style: TextStyle(
                             color: _getRiskColorFromLevel(item.riskLevel),
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -496,33 +840,71 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
     final heightChange = lastData.height - firstData.height;
     final riskChange = lastData.riskLevel - firstData.riskLevel;
 
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.purple.shade50, Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.purple.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '📈 Resumen del Progreso',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade400, Colors.purple.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purple.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.trending_up, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  '📈 Resumen del Progreso',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Row(
               children: [
                 _buildSummaryItem(
                   'Peso',
-                  '${weightChange.toStringAsFixed(1)} kg',
+                  '${weightChange >= 0 ? '+' : ''}${weightChange.toStringAsFixed(1)} kg',
                   weightChange >= 0 ? Colors.green : Colors.red,
                   weightChange >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
                 ),
                 _buildSummaryItem(
                   'Talla',
-                  '${heightChange.toStringAsFixed(1)} cm',
+                  '+${heightChange.toStringAsFixed(1)} cm',
                   Colors.green,
                   Icons.arrow_upward,
                 ),
@@ -534,13 +916,27 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Período: ${firstData.date} - ${lastData.date}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                fontStyle: FontStyle.italic,
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.purple.shade100),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_month, size: 16, color: Colors.purple.shade700),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Período: ${firstData.date} - ${lastData.date}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.purple.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -552,30 +948,59 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
   Widget _buildSummaryItem(
       String title, String value, Color color, IconData icon) {
     return Expanded(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
               color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withValues(alpha: 0.2),
+                    color.withValues(alpha: 0.1),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -614,38 +1039,247 @@ class _ProgressChartsViewState extends State<ProgressChartsView> {
 
   Widget _buildSelectChildPrompt() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.analytics, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          const Text(
-            'Selecciona un niño para ver sus gráficos de progreso',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-            textAlign: TextAlign.center,
+      child: Container(
+        margin: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade50,
+              Colors.white,
+            ],
           ),
-        ],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.purple.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.purple.shade100,
+                    Colors.purple.shade50,
+                  ],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.analytics_rounded,
+                size: 80,
+                color: Colors.purple.shade700,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '📊 Gráficos de Progreso',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple.shade800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Selecciona un niño arriba para ver\nsus gráficos de evolución',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.purple.shade200,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.purple.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Monitorea peso, talla y riesgo',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.purple.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.child_care, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          const Text(
-            'No hay niños registrados',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+      child: Container(
+        margin: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(50),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.purple.shade50,
+              Colors.white,
+              Colors.purple.shade50,
+            ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Registra un niño para ver sus gráficos de progreso',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: Colors.purple.shade200,
+            width: 2,
           ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.purple.withValues(alpha: 0.15),
+              blurRadius: 25,
+              offset: const Offset(0, 10),
+              spreadRadius: 3,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.purple.shade100,
+                    Colors.purple.shade200,
+                  ],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withValues(alpha: 0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.analytics_outlined,
+                size: 90,
+                color: Colors.purple.shade800,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              '¡Sin Datos de Progreso!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple.shade900,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No hay niños registrados en el sistema',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Registra un niño primero para ver\nsus gráficos de evolución',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.purple.shade500,
+                    Colors.purple.shade700,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Ve a "Inicio" para registrar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
