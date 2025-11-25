@@ -1,24 +1,27 @@
+// 👶 Controlador de Niños - WasiApp
+// Maneja toda la información de los niños: crear, editar, eliminar y ver estadísticas
+
 import 'package:flutter/material.dart';
 import '../models/nino_model.dart';
 import '../services/nino_service.dart';
 import '../utils/imc_calculator.dart';
 
 class NinoController extends ChangeNotifier {
-  List<NinoModel> _ninos = [];
-  List<NinoModel> _ninosFiltrados = [];
-  NinoModel? _ninoSeleccionado;
-  bool _isLoading = false;
-  String? _errorMessage;
-  Map<String, dynamic> _estadisticas = {};
+  List<NinoModel> _ninos = []; // Lista completa de niños
+  List<NinoModel> _ninosFiltrados = []; // Lista que se muestra en pantalla (puede estar filtrada)
+  NinoModel? _ninoSeleccionado; // El niño que el usuario está viendo ahora
+  bool _isLoading = false; // Si estamos cargando datos
+  String? _errorMessage; // Mensaje de error para mostrar
+  Map<String, dynamic> _estadisticas = {}; // Datos estadísticos (promedios, totales, etc.)
 
-  // Getters
+  // Información que otras partes de la app pueden consultar
   List<NinoModel> get ninos => _ninosFiltrados;
   NinoModel? get ninoSeleccionado => _ninoSeleccionado;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic> get estadisticas => _estadisticas;
 
-  // Cargar niños por usuario
+  // Cargar todos los niños de un usuario desde Firebase
   Future<void> cargarNinosPorUsuario(String usuarioId) async {
     debugPrint('🔄 Controller: Iniciando carga para usuario: $usuarioId');
     
@@ -56,7 +59,7 @@ class NinoController extends ChangeNotifier {
     }
   }
 
-  // Crear nuevo niño
+  // Registrar un niño nuevo con todos sus datos
   Future<bool> crearNino({
     required String nombres,
     required String apellidos,

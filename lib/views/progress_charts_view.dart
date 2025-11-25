@@ -1,4 +1,6 @@
-// views/progress_charts_view.dart
+// 📊 Pantalla de Gráficos de Progreso - WasiApp
+// Muestra gráficos visuales del peso, talla y riesgo de anemia a lo largo del tiempo
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/nino_controller.dart';
@@ -12,9 +14,9 @@ class ProgressChartsView extends StatefulWidget {
 }
 
 class _ProgressChartsViewState extends State<ProgressChartsView> {
-  NinoModel? _selectedChild;
-  String _selectedChart = 'Peso';
-  final List<String> _chartTypes = ['Peso', 'Talla', 'Riesgo'];
+  NinoModel? _selectedChild; // Niño del que se muestran los gráficos
+  String _selectedChart = 'Peso'; // Tipo de gráfico seleccionado
+  final List<String> _chartTypes = ['Peso', 'Talla', 'Riesgo']; // Opciones disponibles
 
   @override
   Widget build(BuildContext context) {

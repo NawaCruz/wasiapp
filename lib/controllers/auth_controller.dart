@@ -1,19 +1,22 @@
+// 🔐 Controlador de Autenticación - WasiApp
+// Maneja el inicio de sesión, registro y perfil del usuario
+
 import 'package:flutter/material.dart';
 import '../models/usuario_model.dart';
 import '../services/usuario_service.dart';
 
 class AuthController extends ChangeNotifier {
-  UsuarioModel? _usuarioActual;
-  bool _isLoading = false;
-  String? _errorMessage;
+  UsuarioModel? _usuarioActual; // El usuario que está usando la app ahora
+  bool _isLoading = false; // Si estamos procesando algo (mostrar loading)
+  String? _errorMessage; // Mensaje de error para mostrar al usuario
 
-  // Getters
+  // Información que otras partes de la app pueden consultar
   UsuarioModel? get usuarioActual => _usuarioActual;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isLoggedIn => _usuarioActual != null;
+  bool get isLoggedIn => _usuarioActual != null; // ¿Hay alguien usando la app?
 
-  // Login
+  // Iniciar sesión con usuario y contraseña
   Future<bool> login(String usuario, String contrasena) async {
     try {
       _setLoading(true);
@@ -44,14 +47,14 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // Logout
+  // Cerrar sesión (salir de la app)
   void logout() {
     _usuarioActual = null;
     _clearError();
     notifyListeners();
   }
 
-  // Crear usuario
+  // Registrar un usuario nuevo
   Future<bool> crearUsuario({
     required String usuario,
     required String contrasena,

@@ -1,3 +1,6 @@
+// 👤 Pantalla de Mi Cuenta - WasiApp
+// Muestra el perfil del usuario y la lista de niños registrados para editar o eliminar
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,8 +18,8 @@ class CuentaView extends StatefulWidget {
 }
 
 class _CuentaViewState extends State<CuentaView> with TickerProviderStateMixin {
-  late TabController _tabController;
-  bool _isLoadingRefresh = false;
+  late TabController _tabController; // Control de pestañas (Perfil, Niños)
+  bool _isLoadingRefresh = false; // Mostrar indicador de recarga
 
   @override
   void initState() {

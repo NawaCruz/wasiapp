@@ -1,13 +1,16 @@
+// 👤 Modelo de Usuario - WasiApp
+// Define la información de cada usuario registrado en la app
+
 class UsuarioModel {
-  final String id;
-  final String usuario;
-  final String contrasena;
-  final String? nombre;
-  final String? apellido;
-  final String? email;
-  final DateTime? fechaCreacion;
-  final DateTime? ultimoAcceso;
-  final bool activo;
+  final String id; // ID único en Firebase
+  final String usuario; // Nombre de usuario (puede ser el email)
+  final String contrasena; // Contraseña (en producción debería estar encriptada)
+  final String? nombre; // Nombre real (opcional)
+  final String? apellido; // Apellido (opcional)
+  final String? email; // Correo electrónico
+  final DateTime? fechaCreacion; // Cuándo se creó la cuenta
+  final DateTime? ultimoAcceso; // Último inicio de sesión
+  final bool activo; // Si la cuenta está activa
 
   UsuarioModel({
     required this.id,
@@ -36,7 +39,8 @@ class UsuarioModel {
     );
   }
 
-  // Convertir a Map para guardar en Firestore
+  // Convertir el objeto a un Map para guardar en Firebase
+  // (Firebase no entiende objetos, solo Maps)
   Map<String, dynamic> toMap() {
     return {
       'usuario': usuario,

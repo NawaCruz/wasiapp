@@ -1,11 +1,15 @@
+// 📊 Calculadora de IMC - WasiApp
+// Calcula el Índice de Masa Corporal y lo clasifica según edad
+
 class IMCCalculator {
-  // Calcular IMC básico
+  // Calcular IMC: peso / (talla × talla)
+  // Ejemplo: 15kg / (1.0m × 1.0m) = 15
   static double calcularIMC(double peso, double talla) {
-    if (talla <= 0) return 0;
+    if (talla <= 0) return 0; // Evitar división por cero
     return peso / (talla * talla);
   }
 
-  // Clasificar IMC para adultos
+  // Clasificar IMC para adultos (18+ años)
   static String clasificarIMCAdultos(double imc) {
     if (imc < 18.5) {
       return 'Bajo peso';
@@ -22,10 +26,10 @@ class IMCCalculator {
     }
   }
 
-  // Clasificar IMC para niños (simplificado)
+  // Clasificar IMC para niños (0-18 años)
+  // NOTA: Esta es una versión simplificada
+  // Un sistema profesional usaría las tablas oficiales de percentiles de la OMS
   static String clasificarIMCNinos(double imc, int edad, String sexo) {
-    // Esta es una clasificación simplificada
-    // En un sistema real deberías usar las tablas de percentiles de la OMS
 
     if (edad <= 2) {
       if (imc < 14) return 'Bajo peso';

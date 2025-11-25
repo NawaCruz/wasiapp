@@ -1,3 +1,6 @@
+// 🌟 Pantalla de Bienvenida - WasiApp
+// Aparece al abrir la app, muestra el logo y decide si ir a Login o Home
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
@@ -12,8 +15,9 @@ class SplashView extends StatefulWidget {
 }
 
 class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
+  // Controladores de animación para que el logo aparezca con estilo
+  late AnimationController _fadeController; // Desvanecimiento
+  late AnimationController _scaleController; // Escala/zoom
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
@@ -21,7 +25,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    // Configurar animaciones
+    // Configurar las animaciones (duración y tipo de movimiento)
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,

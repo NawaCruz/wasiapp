@@ -1,41 +1,49 @@
+// 👶 Modelo de Niño - WasiApp
+// Define toda la información que se guarda de cada niño en la base de datos
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NinoModel {
-  final String id;
+  // === DATOS PERSONALES ===
+  final String id; // ID único en Firebase
   final String nombres;
   final String apellidos;
-  final String dniNino;
+  final String dniNino; // DNI del niño
   final DateTime fechaNacimiento;
-  final String sexo;
-  final String residencia;
-  final String nombreTutor;
-  final String dniPadre;
-  final double peso;
-  final double talla;
-  final double? imc;
-  final String? clasificacionIMC;
-  final DateTime fechaRegistro;
-  final bool activo;
+  final String sexo; // "Masculino" o "Femenino"
+  final String residencia; // Ciudad donde vive
+  final String nombreTutor; // Nombre del papá/mamá/tutor
+  final String dniPadre; // DNI del tutor
+  
+  // === MEDIDAS ===
+  final double peso; // En kilogramos
+  final double talla; // En metros
+  final double? imc; // Índice de Masa Corporal (calculado automáticamente)
+  final String? clasificacionIMC; // "Bajo peso", "Normal", "Sobrepeso", etc.
+  
+  // === CONTROL ===
+  final DateTime fechaRegistro; // Cuándo se registró el niño
+  final bool activo; // Si está activo o fue eliminado
 
-  // Campos del cuestionario de salud
-  final String? anemia;
-  final String? alimentosHierro;
-  final String? fatiga;
-  final String? alimentacionBalanceada;
-  final String? palidez;
-  final String? disminucionRendimiento;
-  final String? evaluacionAnemia;
+  // === CUESTIONARIO DE SALUD ===
+  final String? anemia; // ¿Ha tenido anemia? (Sí/No)
+  final String? alimentosHierro; // ¿Come alimentos con hierro? (Sí/No)
+  final String? fatiga; // ¿Se cansa fácilmente? (Sí/No)
+  final String? alimentacionBalanceada; // ¿Come balanceado? (Sí/No)
+  final String? palidez; // ¿Se ve pálido? (Sí/No)
+  final String? disminucionRendimiento; // ¿Bajo rendimiento? (Sí/No)
+  final String? evaluacionAnemia; // Evaluación general
 
-  // Campo para asociar con el usuario
-  final String? usuarioId;
+  // === RELACIÓN CON USUARIO ===
+  final String? usuarioId; // ID del usuario dueño de este registro
 
-  // Campo para la foto de la conjuntiva
-  final String? fotoConjuntivaUrl;
+  // === FOTO DE CONJUNTIVA ===
+  final String? fotoConjuntivaUrl; // Ruta de la foto del ojo (para IA)
 
-  // Campos para el diagnóstico de anemia
-  final String? diagnosticoAnemiaRiesgo; // 'alto', 'medio', 'bajo'
-  final double? diagnosticoAnemiaScore; // 0-100
-  final DateTime? diagnosticoAnemiaFecha;
+  // === DIAGNÓSTICO DE ANEMIA ===
+  final String? diagnosticoAnemiaRiesgo; // "alto", "medio", "bajo"
+  final double? diagnosticoAnemiaScore; // Puntaje de 0 a 100
+  final DateTime? diagnosticoAnemiaFecha; // Cuándo se hizo el diagnóstico
 
   NinoModel({
     required this.id,
@@ -67,7 +75,8 @@ class NinoModel {
     this.diagnosticoAnemiaFecha,
   });
 
-  // Factory constructor para crear desde Map (Firestore)
+  // Convertir datos de Firebase a un objeto NinoModel
+  // (Firebase guarda todo como Map, esto lo convierte a un objeto que podemos usar)
   factory NinoModel.fromMap(Map<String, dynamic> map, String documentId) {
     return NinoModel(
       id: documentId,

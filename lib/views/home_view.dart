@@ -1,3 +1,6 @@
+// 🏠 Pantalla Principal - WasiApp
+// Muestra el resumen de todos los niños registrados y opciones principales
+
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 import 'dart:async';
 import 'dart:io';
@@ -21,16 +24,16 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  int _selectedIndex = 0;
-  late TabController _tabController;
-  bool _isLoadingRefresh = false;
+  int _selectedIndex = 0; // Índice del menú inferior (Inicio, Diagnóstico, etc.)
+  late TabController _tabController; // Control de pestañas
+  bool _isLoadingRefresh = false; // Mostrar indicador de recarga
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     
-    // Cargar datos automáticamente al iniciar
+    // Cargar los niños del usuario automáticamente cuando se abre la app
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cargarDatos();
     });

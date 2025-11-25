@@ -1,21 +1,25 @@
+// ✅ Validadores de Formularios - WasiApp
+// Funciones para verificar que los datos ingresados sean correctos
+
 import 'package:intl/intl.dart';
 
 class Validators {
-  // Validar email
+  // Verificar que el email tenga formato correcto (ejemplo@dominio.com)
   static String? validarEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese su email';
     }
 
+    // Patrón regex para validar formato de email
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Ingrese un email válido';
     }
 
-    return null;
+    return null; // null = no hay error
   }
 
-  // Validar contraseña
+  // Verificar que la contraseña tenga al menos 6 caracteres
   static String? validarContrasena(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese su contraseña';
@@ -28,7 +32,7 @@ class Validators {
     return null;
   }
 
-  // Funciones Core eliminadas para evitar duplicación
+  // Verificar que el nombre solo contenga letras
   static String? validarNombre(String? value, String campo) {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese $campo';
@@ -44,7 +48,7 @@ class Validators {
   }
   // Funciones Core eliminadas - se mantienen las versiones estándar
 
-  // Validar DNI peruano
+  // Verificar DNI peruano (8 dígitos)
   static String? validarDNI(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese el DNI';

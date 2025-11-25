@@ -1,13 +1,17 @@
+// 👶 Servicio de Niños - WasiApp
+// Maneja todos los datos de los niños: registros, consultas y actualizaciones
+
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/nino_model.dart';
 
 class NinoService {
+  // Conexión con Firebase
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static const String _collection = 'ninos';
+  static const String _collection = 'ninos'; // Tabla de niños en Firebase
   
-  // Inicializar configuración de Firestore (llamar UNA vez al inicio)
+  // Preparar la conexión con Firebase (se llama una sola vez al iniciar la app)
   static Future<void> initialize() async {
     try {
       // Habilitar persistencia offline para evitar bloqueos
@@ -18,17 +22,17 @@ class NinoService {
     }
   }
 
-  // Crear nuevo registro de niño
+  // Guardar un niño nuevo en la base de datos
   static Future<String> crearNino(NinoModel nino) async {
     try {
       final docRef = await _firestore.collection(_collection).add(nino.toMap());
-      return docRef.id;
+      return docRef.id; // Devuelve el ID que Firebase le asignó
     } catch (e) {
       throw Exception('Error al crear registro del niño: $e');
     }
   }
 
-  // Obtener niño por ID
+  // Buscar un niño específico por su ID
   static Future<NinoModel?> obtenerNinoPorId(String id) async {
     try {
       final doc = await _firestore.collection(_collection).doc(id).get();
@@ -42,7 +46,7 @@ class NinoService {
     }
   }
 
-  // Stream de niños por usuario (no bloquea el hilo principal)
+  // Obtener niños en tiempo real (se actualiza automáticamente cuando hay cambios)
   static Stream<List<NinoModel>> streamNinosPorUsuario(String usuarioId) {
     debugPrint('🌊 Stream iniciado para usuario: $usuarioId');
     
@@ -73,13 +77,13 @@ class NinoService {
         });
   }
 
-  // Obtener niños activos por usuario (ahora usa cache primero)
+  // Obtener la lista de niños de un usuario (primero intenta desde cache para ser más rápido)
   static Future<List<NinoModel>> obtenerNinosPorUsuario(
       String usuarioId) async {
     debugPrint('🔍 Consultando niños para usuario: $usuarioId');
     
     try {
-      // Intentar primero desde CACHE (instantáneo)
+      // PASO 1: Intentar cargar desde el cache local (es instantáneo)
       QuerySnapshot<Map<String, dynamic>>? cacheSnapshot;
       try {
         cacheSnapshot = await _firestore
@@ -114,7 +118,7 @@ class NinoService {
         }
       }
       
-      // Si no hay cache, consultar servidor
+      // PASO 2: Si no hay cache, consultar directamente a Firebase
       debugPrint('🌐 Consultando servidor...');
       final querySnapshot = await _firestore
           .collection(_collection)

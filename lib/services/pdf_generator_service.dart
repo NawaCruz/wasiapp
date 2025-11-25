@@ -1,10 +1,13 @@
-// services/pdf_generator_service.dart
+// 📄 Servicio Generador de PDFs - WasiApp
+// Crea documentos PDF con los planes nutricionales personalizados para cada niño
+
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 
 class PdfGeneratorService {
+  // Crear un PDF completo con el plan nutricional
   static Future<File> generateNutritionalPlanPDF({
     required String childName,
     required String age,

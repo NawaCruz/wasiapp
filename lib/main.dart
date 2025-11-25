@@ -1,27 +1,32 @@
+// 🌟 WasiApp - Aplicación de Control Nutricional Infantil
+// Punto de entrada principal de la aplicación
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
-// Controladores
+// Controladores (manejan la lógica de negocio)
 import 'controllers/auth_controller.dart';
 import 'controllers/nino_controller.dart';
 
-// Vistas
+// Vistas (las pantallas que ve el usuario)
 import 'views/splash_view.dart';
 
-// Configuración
+// Configuración de rutas
 import 'core/routes/rutas_app.dart';
 
-// ML Provider
+// Proveedor de Inteligencia Artificial
 import 'providers/ml_provider.dart';
 
+// Función principal - aquí comienza todo
 Future<void> main() async {
+  // Preparar Flutter antes de iniciar
   WidgetsFlutterBinding.ensureInitialized();
   
   debugPrint('🚀 Iniciando aplicación...');
   
   try {
-    // Configuración manual para Android
+    // Conectar con Firebase (base de datos en la nube)
     await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: 'AIzaSyDZLhoqC4yiDs5BNzi5rsTk5qck65Q3T7s',
@@ -39,12 +44,12 @@ Future<void> main() async {
   debugPrint('📱 Lanzando app...');
   
   runApp(
+    // MultiProvider: Permite que todas las pantallas accedan a los controladores
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => NinoController()),
-        // MLProvider se carga LAZY - solo cuando se usa diagnóstico
-        ChangeNotifierProvider(create: (_) => MLProvider(), lazy: true),
+        ChangeNotifierProvider(create: (_) => AuthController()), // Control de usuarios
+        ChangeNotifierProvider(create: (_) => NinoController()), // Control de niños
+        ChangeNotifierProvider(create: (_) => MLProvider(), lazy: true), // IA (se carga solo cuando se necesita)
       ],
       child: const AplicacionWasi(),
     ),

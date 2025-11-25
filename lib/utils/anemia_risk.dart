@@ -1,11 +1,14 @@
+// 🩺 Motor de Evaluación de Riesgo de Anemia - WasiApp
+// Calcula el riesgo de anemia combinando IMC, síntomas y análisis de imagen
+
 import 'dart:io';
 import 'dart:math';
 import 'package:image/image.dart' as img;
 
-/// Nivel de riesgo categórico
+// Niveles de riesgo posibles
 enum RiskLevel { bajo, medio, alto }
 
-/// Entrada para estimar riesgo de anemia
+// Datos necesarios para evaluar el riesgo
 class AnemiaRiskInput {
   final int edadMeses;
   final String sexo;
@@ -46,21 +49,22 @@ class AnemiaRiskResult {
 }
 
 class AnemiaRiskEngine {
-  /// Estima riesgo combinando IMC, síntomas e imagen.
+  // Calcular el riesgo de anemia basándose en múltiples factores
+  // Devuelve un puntaje de 0-100 y clasifica como bajo/medio/alto
   static AnemiaRiskResult estimate(AnemiaRiskInput i) {
-    double score = 0;
-    final factores = <String>[];
+    double score = 0; // Puntaje total
+    final factores = <String>[]; // Lista de factores detectados
 
-    // 1) IMC
+    // FACTOR 1: IMC (peso vs altura)
     final imc = _imc(i.pesoKg, i.tallaM);
     if (imc <= 14) {
-      score += 20;
+      score += 20; // IMC muy bajo = mayor riesgo
       factores.add('IMC bajo (${imc.toStringAsFixed(1)})');
     } else if (imc <= 17) {
-      score += 10;
+      score += 10; // IMC ligeramente bajo
       factores.add('IMC ligeramente bajo (${imc.toStringAsFixed(1)})');
     } else {
-      score += 5;
+      score += 5; // IMC normal
       factores.add('IMC en rango (${imc.toStringAsFixed(1)})');
     }
 

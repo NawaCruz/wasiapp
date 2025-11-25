@@ -1,9 +1,12 @@
-// services/notification_service.dart
+// 🔔 Servicio de Notificaciones - WasiApp
+// Maneja recordatorios de comidas para ayudar a los padres
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
-// Clase personalizada para representar la hora
+// Clase para representar hora en formato 24h
+// Ejemplo: TimeOfDay24(7, 30) = 7:30 AM
 class TimeOfDay24 {
   final int hour;
   final int minute;
@@ -12,6 +15,7 @@ class TimeOfDay24 {
   const TimeOfDay24(this.hour, this.minute, [this.second = 0]);
 }
 
+// Servicio de notificaciones (Singleton - una sola instancia)
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -20,14 +24,17 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
+  // Inicializar el servicio al arrancar la app
   Future<void> initialize() async {
-    // Inicializar timezone
+    // Configurar zona horaria de Perú
     tz_data.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('America/Lima')); // Configurar zona horaria de Perú
+    tz.setLocalLocation(tz.getLocation('America/Lima'));
     
+    // Configuración para Android
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
+    // Configuración para iOS
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -49,9 +56,11 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
-  // Programar recordatorio de plan alimenticio
+  // Programar recordatorio personalizado para un niño
+  // Ejemplo: scheduleFoodPlanReminder("María", TimeOfDay24(9, 0), [1, 3, 5])
   Future<void> scheduleFoodPlanReminder(
       String childName, TimeOfDay24 time, List<int> days) async {
+    
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'food_reminders',
@@ -69,10 +78,11 @@ class NotificationService {
       iOS: iosDetails,
     );
 
+    // Crear notificación para cada día
     for (int i = 0; i < days.length; i++) {
       final day = days[i];
       await _notifications.zonedSchedule(
-        1000 + i, // ID único basado en índice
+        1000 + i,
         '🍎 Plan Alimenticio - $childName',
         'Es hora de seguir el plan nutricional. ¡Mantén una alimentación saludable!',
         _nextInstanceOfTime(time, day),
@@ -85,17 +95,19 @@ class NotificationService {
     }
   }
 
-  // Programar recordatorio general de alimentación
+  // Programar recordatorios automáticos de comidas
+  // 🍳 Desayuno 7AM | 🍲 Almuerzo 1PM | 🍽️ Cena 7PM | 💪 Hierro 11AM (Lun/Mié/Vie)
   Future<void> scheduleGeneralFoodReminders() async {
-    // Desayuno
+    
+    // Desayuno - 7:00 AM todos los días
     await _scheduleSingleReminder(
       const TimeOfDay24(7, 0, 0),
       '🍳 Hora del Desayuno',
       '¡No olvides el desayuno! Es la comida más importante del día.',
-      [1, 2, 3, 4, 5, 6, 7], // Todos los días
+      [1, 2, 3, 4, 5, 6, 7],
     );
 
-    // Almuerzo
+    // Almuerzo - 1:00 PM todos los días
     await _scheduleSingleReminder(
       const TimeOfDay24(13, 0, 0),
       '🍲 Hora del Almuerzo',
@@ -103,7 +115,7 @@ class NotificationService {
       [1, 2, 3, 4, 5, 6, 7],
     );
 
-    // Cena
+    // Cena - 7:00 PM todos los días
     await _scheduleSingleReminder(
       const TimeOfDay24(19, 0, 0),
       '🍽️ Hora de la Cena',
@@ -111,17 +123,19 @@ class NotificationService {
       [1, 2, 3, 4, 5, 6, 7],
     );
 
-    // Recordatorio de alimentos ricos en hierro (Lunes, Miércoles, Viernes)
+    // Hierro - 11:00 AM (Lunes, Miércoles, Viernes)
     await _scheduleSingleReminder(
       const TimeOfDay24(11, 0, 0),
       '💪 Alimentos con Hierro',
       'Recuerda incluir alimentos ricos en hierro en la comida.',
-      [1, 3, 5], // Lunes, Miércoles, Viernes
+      [1, 3, 5],
     );
   }
 
+  // Método interno para programar un recordatorio
   Future<void> _scheduleSingleReminder(
       TimeOfDay24 time, String title, String body, List<int> days) async {
+    
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'food_reminders',
@@ -140,7 +154,9 @@ class NotificationService {
 
     for (int i = 0; i < days.length; i++) {
       final day = days[i];
-      // Generar ID único basado en hora y día
+      
+      // Generar ID único: (hora*100 + minutos)*10 + índice
+      // Ejemplo: 7:00 AM → 7000, 7001, 7002...
       final notificationId = (time.hour * 100 + time.minute) * 10 + i;
       
       await _notifications.zonedSchedule(
@@ -157,8 +173,12 @@ class NotificationService {
     }
   }
 
+  // Calcular cuándo debe sonar la próxima notificación
+  // Si ya pasó la hora hoy, programa para la próxima semana
   tz.TZDateTime _nextInstanceOfTime(TimeOfDay24 time, int day) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    
+    // Crear fecha con la hora deseada
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
@@ -169,10 +189,12 @@ class NotificationService {
       time.second,
     );
 
+    // Buscar el día de la semana correcto
     while (scheduledDate.weekday != day) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
+    // Si ya pasó, programar para la próxima semana
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 7));
     }
@@ -185,7 +207,7 @@ class NotificationService {
     await _notifications.cancelAll();
   }
 
-  // Probar notificación inmediata
+  // Notificación de prueba inmediata
   Future<void> testNotification() async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(

@@ -1,4 +1,7 @@
-// nutritional_plan_view.dart
+// 🍎 Pantalla de Plan Nutricional - WasiApp
+// Muestra recomendaciones de alimentación según el nivel de riesgo de anemia
+// Permite generar un PDF del plan para imprimir o compartir
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:open_file/open_file.dart';
@@ -14,8 +17,8 @@ class NutritionalPlanView extends StatefulWidget {
 }
 
 class _NutritionalPlanViewState extends State<NutritionalPlanView> {
-  NinoModel? _selectedChild;
-  bool _isGeneratingPDF = false;
+  NinoModel? _selectedChild; // El niño seleccionado para ver su plan
+  bool _isGeneratingPDF = false; // Mostrar indicador mientras se crea el PDF
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,6 @@
+// 🔐 Pantalla de Inicio de Sesión - WasiApp
+// Primera pantalla donde el usuario ingresa con su email y contraseña
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
@@ -14,14 +17,16 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with SingleTickerProviderStateMixin {
+  // Controladores para capturar email y contraseña
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
+  bool _obscurePassword = true; // Ocultar contraseña por defecto
 
+  // Controladores de animación (para que la pantalla aparezca suavemente)
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation; // Desvanecimiento
+  late Animation<Offset> _slideAnimation; // Deslizamiento
 
   @override
   void initState() {

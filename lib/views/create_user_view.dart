@@ -1,3 +1,6 @@
+// 📝 Pantalla de Registro de Usuario - WasiApp
+// Permite crear una cuenta nueva con email, contraseña y datos personales
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
@@ -12,13 +15,16 @@ class CreateUserView extends StatefulWidget {
 }
 
 class _CreateUserViewState extends State<CreateUserView> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // Control del formulario
+  
+  // Controladores para capturar lo que el usuario escribe
   final _emailController = TextEditingController();
   final _contrasenaController = TextEditingController();
   final _confirmarContrasenaController = TextEditingController();
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
 
+  // Ocultar/mostrar contraseñas
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 

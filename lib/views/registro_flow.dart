@@ -1,3 +1,7 @@
+// 📋 Pantalla de Registro de Niño - WasiApp
+// Formulario de 3 pasos para registrar o editar los datos de un niño
+// Paso 1: Datos personales | Paso 2: Cuestionario de salud | Paso 3: Medidas
+
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +11,7 @@ import '../controllers/auth_controller.dart';
 import '../models/nino_model.dart';
 
 class RegistroNinoFlow extends StatefulWidget {
-  final NinoModel? ninoAEditar; // Parámetro opcional para edición
+  final NinoModel? ninoAEditar; // Si viene con datos, es edición; si no, es nuevo registro
 
   const RegistroNinoFlow({
     super.key,
@@ -19,35 +23,34 @@ class RegistroNinoFlow extends StatefulWidget {
 }
 
 class _RegistroNinoFlowState extends State<RegistroNinoFlow> {
-  final PageController _pageController = PageController();
-  int _currentStep = 0;
+  final PageController _pageController = PageController(); // Control del deslizamiento entre pasos
+  int _currentStep = 0; // Paso actual (0, 1, o 2)
 
-  // Controladores para datos básicos
+  // === PASO 1: DATOS PERSONALES ===
   final _formKey1 = GlobalKey<FormState>();
   final _nombresController = TextEditingController();
   final _apellidosController = TextEditingController();
   final _dniNinoController = TextEditingController();
-  final _nombreTutorController = TextEditingController();
+  final _nombreTutorController = TextEditingController(); // Nombre del papá/mamá
   final _dniPadreController = TextEditingController();
 
   DateTime? _fechaNacimiento;
   String? _sexoSeleccionado;
 
-  // Controladores para cuestionario de salud
+  // === PASO 2: CUESTIONARIO DE SALUD ===
   final _formKey2 = GlobalKey<FormState>();
-  String? _anemia;
-  String? _alimentosHierro;
-  String? _fatiga;
-  String? _alimentacionBalanceada;
-  String? _palidez;
-  String? _disminucionRendimiento;
-  // String? _riesgoAnemia;
-  String? _residenciaSeleccionada;
+  String? _anemia; // ¿Ha tenido anemia?
+  String? _alimentosHierro; // ¿Come alimentos con hierro?
+  String? _fatiga; // ¿Se cansa mucho?
+  String? _alimentacionBalanceada; // ¿Come de todo?
+  String? _palidez; // ¿Se ve pálido?
+  String? _disminucionRendimiento; // ¿Bajo rendimiento escolar?
+  String? _residenciaSeleccionada; // Ciudad donde vive
 
-  // Controladores para medidas antropométricas
+  // === PASO 3: MEDIDAS ===
   final _formKey3 = GlobalKey<FormState>();
-  final _pesoController = TextEditingController();
-  final _tallaController = TextEditingController();
+  final _pesoController = TextEditingController(); // Peso en kg
+  final _tallaController = TextEditingController(); // Altura en cm o metros
 
   double? _imcCalculado;
   String? _clasificacionIMC;

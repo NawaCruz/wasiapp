@@ -1,11 +1,15 @@
+// 👤 Servicio de Usuarios - WasiApp
+// Maneja todo lo relacionado con cuentas de usuarios
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/usuario_model.dart';
 
 class UsuarioService {
+  // Conexión con la base de datos Firebase
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static const String _collection = 'usuario';
+  static const String _collection = 'usuario'; // Nombre de la tabla en Firebase
 
-  // Buscar usuario por email/usuario
+  // Buscar un usuario por su nombre de usuario
   static Future<UsuarioModel?> buscarPorUsuario(String usuario) async {
     try {
       final querySnapshot = await _firestore
@@ -24,18 +28,18 @@ class UsuarioService {
     }
   }
 
-  // Crear nuevo usuario
+  // Guardar un usuario nuevo en la base de datos
   static Future<String> crearUsuario(UsuarioModel usuario) async {
     try {
       final docRef =
           await _firestore.collection(_collection).add(usuario.toMap());
-      return docRef.id;
+      return docRef.id; // Devuelve el ID que Firebase le asignó
     } catch (e) {
       throw Exception('Error al crear usuario: $e');
     }
   }
 
-  // Actualizar usuario
+  // Actualizar información de un usuario existente
   static Future<void> actualizarUsuario(UsuarioModel usuario) async {
     try {
       await _firestore
@@ -47,13 +51,13 @@ class UsuarioService {
     }
   }
 
-  // Verificar credenciales
+  // Verificar si el usuario y contraseña son correctos al iniciar sesión
   static Future<bool> verificarCredenciales(
       String usuario, String contrasena) async {
     try {
       final usuarioModel = await buscarPorUsuario(usuario);
       if (usuarioModel != null && usuarioModel.contrasena == contrasena) {
-        // Actualizar último acceso
+        // Actualizar la fecha de último acceso
         final usuarioActualizado = usuarioModel.copyWith(
           ultimoAcceso: DateTime.now(),
         );
@@ -66,7 +70,7 @@ class UsuarioService {
     }
   }
 
-  // Verificar si el usuario existe
+  // Revisar si ya existe un usuario con ese nombre
   static Future<bool> existeUsuario(String usuario) async {
     try {
       final usuarioModel = await buscarPorUsuario(usuario);

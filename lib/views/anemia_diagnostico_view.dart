@@ -1,3 +1,6 @@
+// 🩺 Pantalla de Diagnóstico de Anemia - WasiApp
+// Evalúa el riesgo de anemia usando datos del niño, cuestionario y foto de conjuntiva
+
 // ignore_for_file: deprecated_member_use
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -18,28 +21,28 @@ class AnemiaDiagnosticoView extends StatefulWidget {
 class _AnemiaDiagnosticoViewState extends State<AnemiaDiagnosticoView> {
   final _formKey = GlobalKey<FormState>();
 
-  // Datos
-  int _edadMeses = 60; // default 5 años
+  // Datos básicos del niño
+  int _edadMeses = 60; // 5 años por defecto
   String _sexo = 'Masculino';
-  double _peso = 15;
-  double _talla = 1.0;
+  double _peso = 15; // kg
+  double _talla = 1.0; // metros
 
-  // Cuestionario
-  bool _palidez = false;
-  bool _fatiga = false;
-  bool _apetitoBajo = false;
-  bool _infecciones = false;
-  bool _bajaIngestaHierro = false;
+  // Respuestas del cuestionario de salud
+  bool _palidez = false; // ¿Se ve pálido?
+  bool _fatiga = false; // ¿Se cansa fácilmente?
+  bool _apetitoBajo = false; // ¿Come poco?
+  bool _infecciones = false; // ¿Se enferma seguido?
+  bool _bajaIngestaHierro = false; // ¿Come pocos alimentos con hierro?
 
-  // Imagen
-  final _picker = ImagePicker();
-  File? _image;
-  double? _imgScore;
+  // Imagen de la conjuntiva (parte interior del ojo)
+  final _picker = ImagePicker(); // Para tomar/seleccionar foto
+  File? _image; // La foto seleccionada
+  double? _imgScore; // Puntuación de la IA sobre la imagen
 
-  // Niño seleccionado
+  // Niño que se está evaluando
   NinoModel? _ninoSeleccionado;
 
-  AnemiaRiskResult? _resultado;
+  AnemiaRiskResult? _resultado; // Resultado del diagnóstico
 
   @override
   void initState() {
